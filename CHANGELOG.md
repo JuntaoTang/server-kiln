@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased — Windows client
+
+- Independent .NET 10 / WPF tray client with native Windows OpenSSH sessions,
+  GPU/CPU monitoring, SQLite history, recent jobs and debounced notifications.
+- Optional iPhone notifications through Bark with a DPAPI-protected device key.
+  Original iPhone app / widget / iCloud pairing is not connected by this client.
+- Chinese and English UI, light/dark themes, user-level installation and login startup.
+- Shared Swift/C# parsing fixtures, collector export verification, Windows CI,
+  WPF smoke tests and self-contained Windows packaging with checksums and notices.
+- UTF-8 documentation validation and portable repository test execution on Windows.
+
 ## 1.0.4
 
 See [release notes](docs/releases/v1.0.4.md).

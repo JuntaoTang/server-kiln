@@ -24,6 +24,10 @@ over SSH. See which GPUs are busy, inspect training processes, follow resource
 history and get notified when a machine becomes idle. Basic monitoring uses
 your existing SSH configuration and installs no server daemon.
 
+This branch also includes an independent **Windows tray client** with monitoring,
+local history and optional iPhone notifications through Bark. See the
+[Windows guide](docs/windows.md) for installation, builds and mobile limitations.
+
 ## See your fleet
 
 <p align="center">
@@ -71,12 +75,14 @@ and history stays on your Mac. No analytics SDK or project-operated telemetry
 backend is included. SSH reads process commands and paths, so treat diagnostic
 output as sensitive. See [the data flow and security model](docs/security-and-privacy.md).
 
-This repository contains the **macOS app and the shared code required by its
-Mac features**. The iPhone app and widgets are distributed separately and are
+This repository contains the **macOS app, Windows client and related shared
+code**. The iPhone app and widgets are distributed separately and are
 not covered by this repository's MIT license. Their source is not included.
 The Mac's optional companion integration is included; using the official iCloud
 container requires the official signed Mac build. A local ad-hoc build fully
 supports Mac monitoring, but cannot use that container.
+The Windows client uses Bark for independent iPhone notifications; it does not
+pair with the original iPhone app, widgets or iCloud Keychain.
 
 ## Build from source
 

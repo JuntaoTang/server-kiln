@@ -1,5 +1,26 @@
 # Security and privacy
 
+## Windows monitoring and optional iPhone notifications
+
+The Windows client uses native OpenSSH with strict host-key checking, batch mode,
+agent forwarding disabled and one persistent process per server. It inherits
+credentials, jumps and proxy commands from the selected user's SSH configuration;
+no private key import into the application is required. Arguments bypass a local
+shell. Unknown host fingerprints and encrypted keys must first be handled in
+an interactive terminal using the same OpenSSH client and agent.
+
+Preferences, SQLite history and recent job metadata are stored under
+`%LOCALAPPDATA%\ServerKiln`. Process commands and working directories can be
+sensitive. An optional Bark key is stored separately with Windows DPAPI for the
+current account; it is not included in the JSON preferences or history database.
+
+Bark is opt-in. The configured HTTPS relay receives the device key, server
+display name and a short activity notification. SSH keys, process commands and
+working directories are not included. HTTP redirects are disabled. The Windows
+client does not access the official CloudKit container or iCloud Keychain and
+does not pair with the separately distributed ServerKiln iPhone app or widgets.
+See the [Windows guide](windows.md) for installation and removal.
+
 ## Basic Mac monitoring
 
 The Mac launches `/usr/bin/ssh` using the selected target and the user's SSH

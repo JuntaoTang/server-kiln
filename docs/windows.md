@@ -1,0 +1,147 @@
+# Windows / Windows 版
+
+The Windows client monitors the same remote **Linux** servers as the Mac app.
+It is an independent .NET 10 / WPF tray application; the SwiftUI Mac application,
+Apple entitlements, Sparkle feed and Mac release scripts retain their existing behavior.
+Windows 11 x64 is the initial target. The app also targets Windows 10 22H2, but
+that compatibility and Windows ARM64 need separate device testing.
+
+Windows 客户端用于监控远端 **Linux** 服务器，首要支持 Windows 11 x64。
+本机无需 WSL，也不需要在服务器安装常驻服务。Mac 客户端继续使用现有构建与同步流程。
+
+## Install / 安装
+
+Extract `ServerKiln-<version>-win-x64.zip` and run `ServerKiln.exe`. The published
+package includes the .NET desktop runtime. Keep the entire extracted directory.
+Optionally run its `install.ps1` to copy it into `%LOCALAPPDATA%\Programs\ServerKiln`
+and create a Start menu shortcut. No administrator access is needed by this installer.
+
+解压 Windows ZIP 后运行 `ServerKiln.exe`，请保留同目录的依赖文件。
+可运行压缩包内的 `install.ps1` 安装到当前用户目录并创建开始菜单快捷方式。
+在设置中可选开启登录启动。关闭窗口后应用仍在托盘运行；右键托盘图标选择「退出」结束监控。
+
+Verify the archive against its `.sha256` file with `Get-FileHash -Algorithm SHA256`.
+This initial build has no automatic updater or Authenticode signature. To update,
+quit from the tray and replace the application files or run the newer installer.
+Settings and history remain in the separate data directory below.
+
+## SSH setup / SSH 配置
+
+Enable the Windows **OpenSSH Client** optional feature if `ssh.exe` is absent.
+The app uses `%WINDIR%\System32\OpenSSH\ssh.exe` by default. An alternative native
+OpenSSH executable and configuration path can be selected in Settings.
+Windows OpenSSH, Git's SSH and WSL SSH have different config/agent environments;
+use the same native executable when preparing your keys and running the app.
+
+First connect interactively in a terminal, verify the host fingerprint, and
+unlock any encrypted key using the matching Windows `ssh-agent`. The app uses
+batch mode and strict host verification, so it never prompts for passwords or
+silently accepts an unknown or changed host key.
+
+```powershell
+ssh gpu-lab
+ssh -o BatchMode=yes -o StrictHostKeyChecking=yes gpu-lab 'uname -s; command -v nvidia-smi'
+```
+
+Example `%USERPROFILE%\.ssh\config`:
+
+```sshconfig
+Host gpu-lab
+    HostName gpu.example.com
+    User researcher
+    IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes
+```
+
+Import that file or add an alias / `user@host` manually. Import previews explicit
+hosts before adding them. The selected config file is also passed to OpenSSH
+for every connection; changing it in Settings applies to all configured aliases.
+OpenSSH itself resolves `IdentityFile`, `ProxyJump`, `ProxyCommand` and `Match`.
+The importer lists explicit `Host` aliases and top-level `Include` files, omitting
+wildcards, negations and common Git hosts. Conditional includes are not expanded
+by the importer; their explicit aliases can be added manually.
+Relative `Include` paths are resolved under the user's `.ssh` directory, as in
+Windows OpenSSH, including when a custom `-F` configuration file is used.
+
+请先在终端完成主机指纹确认和密钥解锁，再在应用中导入配置或手动添加。
+跳板机和代理遵循所选 OpenSSH 配置；Mac 的 `nc -b en0`、Unix 路径或 WSL 内的
+命令不能直接当作 Windows 代理程序使用，需要换成 Windows 可执行的对应命令。
+路径支持中文和空格。基础监控不修改远端 `authorized_keys`。
+
+## Features and data / 功能与数据
+
+- Persistent SSH sessions; four hosts collected concurrently at most.
+- Default polling: 30 seconds in the tray, 3 seconds with the window visible;
+  transient failures retry sooner, sustained failures back off to five minutes.
+- GPU utilization, VRAM, temperature and power; CPU, RAM, disk, network and processes.
+- Default busy rule: utilization at least 10% **or** VRAM at least 1024 MiB.
+- Debounced busy/idle and optional connection notifications, with per-host mute.
+- SQLite history with 24-hour, 7-day and 30-day charts, plus recent grouped jobs.
+- English / Chinese switching and light / dark themes.
+
+Settings are stored in `%LOCALAPPDATA%\ServerKiln\settings.json`, history and job
+metadata in `history.sqlite`. Commands, usernames and working directories are
+sensitive; review them before sharing this directory. Normal SSH private keys
+stay in the user's existing SSH/agent setup. A Bark device key is stored separately
+in `bark-key.dat`, encrypted with DPAPI for the current Windows account.
+
+配置和历史与 Mac 分开保存。卸载程序不会自动删除该数据目录。
+如需卸载，先关闭登录启动、从托盘退出，然后删除程序目录和开始菜单快捷方式。
+
+## iPhone notifications / iPhone 通知
+
+The original ServerKiln iPhone app and widgets are not open source, and their
+CloudKit / iCloud Keychain integration requires the official Apple container and
+signing permissions. This Windows client does **not** pair with that app or
+provide its mobile terminal and widgets.
+
+An optional independent notification route is available through **Bark**:
+
+1. Install Bark on your iPhone and obtain its device key.
+2. In Windows Settings, enter the HTTPS Bark server (default `https://api.day.app`)
+   and the device key, then use **Test iPhone notification**.
+3. Enable iPhone notifications and save. The same debounce, notification choices
+   and per-server mute apply to desktop and phone events.
+
+原版 iPhone App 的配对、终端和小组件暂未接入。当前可在 iPhone 安装 Bark，
+将设备密钥填入 Windows 设置，测试后启用推送；也可填写自建的 HTTPS Bark 服务。
+Windows 电脑需保持唤醒并连接网络。电脑关机、休眠或无法连接服务器期间无法采集与推送。
+
+Pushes send the configured display name and a brief activity change, not process
+commands, working directories or SSH keys. Your chosen Bark service processes
+that notification data. Push is opt-in, uses HTTPS, and does not follow redirects.
+Delivery still depends on the relay, APNs and iPhone notification settings.
+
+## Build and verify / 构建与验证
+
+Install a .NET 10 SDK, Python 3 and Windows OpenSSH. No NuGet packages are required
+for the source build or the test executable. Publishing self-contained packages
+may download Microsoft runtime packs.
+
+```powershell
+python scripts/export-windows-collector.py --check
+python scripts/check-docs.py
+python scripts/check-public-tree.py --history
+python -m unittest discover -s Tests/RepositoryTests
+scripts/build-windows.ps1
+scripts/build-windows.ps1 -Package
+```
+
+Build output: `Sources\ServerKiln.Windows\bin\Release\net10.0-windows\ServerKiln.exe`.
+Portable package: `dist\ServerKiln-<version>-win-x64.zip`.
+Run `ServerKiln.exe --demo --language zh` for synthetic preview data and isolated
+temporary storage. Demo mode performs no SSH monitoring or phone pushes.
+
+The C# test executable exercises shared Swift/Windows parsing fixtures, real
+child-process pipe framing/cancellation with a fake SSH executable, history,
+task tracking, notification policy, encrypted storage and a fake Bark handler.
+It never uses production SSH credentials or sends a real phone notification.
+The build also runs `--smoke-test`, rendering the actual WPF templates, history
+and dialogs in both languages and themes using isolated synthetic data.
+Actual OpenSSH authentication, sleep/resume and iPhone delivery also require
+manual acceptance testing against an explicitly selected host/device.
+
+The collector is exported from `Sources/ServerKilnCore/RemoteScript.swift` by
+`scripts/export-windows-collector.py`. Update it after changing the Swift
+collector; both CI jobs check that it matches. Both language implementations
+read `Tests/SharedFixtures/snapshots.json` to detect behavioral differences.

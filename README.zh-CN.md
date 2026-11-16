@@ -19,6 +19,9 @@ ServerKiln 是一个原生 SwiftUI 菜单栏工具，通过 SSH 监控远端 Lin
 查看每张 GPU 的使用情况、训练进程与资源历史，并在服务器变空闲时收到通知。
 基础监控沿用现有 SSH 配置，无需在服务器安装常驻服务。
 
+本分支新增独立的 **Windows 托盘客户端**，支持服务器监控、资源历史和可选 Bark iPhone 推送。
+构建、安装与手机联动限制请参阅 [Windows 指南](docs/windows.md)。macOS 客户端继续使用原有流程。
+
 ## 界面预览
 
 <p align="center">
@@ -62,10 +65,11 @@ NVIDIA GPU 信息依赖 `nvidia-smi`；没有 GPU 时仍可查看 CPU 和内存�
 采集结果包含进程命令和路径，分享日志前请脱敏。
 可选的 iCloud 功能会同步服务器信息与状态，详见[安全与数据流](docs/security-and-privacy.md)。
 
-本仓库仅开源 **macOS 应用及其功能所需的共用代码**。
+本仓库开源 **macOS 应用、Windows 客户端及相关共用代码**。
 iPhone App 和小组件另行分发，其源代码不在本仓库，也不受本仓库 MIT 许可证覆盖。
 Mac 侧的配套同步功能已包含在源码中；访问官方 iCloud 容器需要官方签名版本。
 自行构建的 ad-hoc 版本可完整使用 Mac 本地监控，但无法访问官方 iCloud 容器。
+Windows 版通过 Bark 提供独立的 iPhone 通知渠道，暂未接入原版 iPhone App、小组件与 iCloud 配对。
 
 ## 从源码构建
 

@@ -50,8 +50,9 @@ def main():
         file = ROOT / name
         if file.is_symlink():
             failures.append(f'Symlink must be reviewed and removed: {name}')
-        elif file.is_file() and file.suffix in {'.swift', '.md', '.yml', '.yaml', '.json', '.sh', '.py', '.xcstrings'}:
-            if not name.startswith('Vendor/') and secret.search(file.read_text(errors='replace')):
+        elif file.is_file() and file.suffix in {'.swift', '.md', '.yml', '.yaml', '.json', '.sh', '.py', '.xcstrings',
+                                               '.cs', '.csproj', '.xaml', '.ps1', '.manifest'}:
+            if not name.startswith('Vendor/') and secret.search(file.read_text(encoding='utf-8', errors='replace')):
                 failures.append(f'Credential or personal path pattern: {name}')
     if failures:
         print('\n'.join(failures), file=sys.stderr)
