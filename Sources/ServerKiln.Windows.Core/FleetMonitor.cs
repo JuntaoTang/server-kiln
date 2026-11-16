@@ -49,7 +49,8 @@ public sealed class FleetMonitor : IAsyncDisposable
             ObjectDisposedException.ThrowIf(disposed, this);
             var settings = Volatile.Read(ref preferences);
             foreach (var (id, entry) in sessions.ToArray())
-                if (!settings.Servers.Any(s => s.Id == id && s.Enabled && s.Target == entry.Config.Target && s.Port == entry.Config.Port)
+                if (!settings.Servers.Any(s => s.Id == id && s.Enabled && s.Target == entry.Config.Target && s.Port == entry.Config.Port
+                        && s.IdentityFile == entry.Config.IdentityFile)
                     || settings.SshExecutable != entry.Executable || settings.SshConfigPath != entry.ConfigPath)
                 {
                     sessions.TryRemove(id, out _);

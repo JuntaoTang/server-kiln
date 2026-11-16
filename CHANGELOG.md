@@ -10,6 +10,9 @@
 - Shared Swift/C# parsing fixtures, collector export verification, Windows CI,
   WPF smoke tests and self-contained Windows packaging with checksums and notices.
 - UTF-8 documentation validation and portable repository test execution on Windows.
+- First-connection fingerprint confirmation with a persistent Windows trust store,
+  including configurations that discard known hosts; per-server private-key file
+  selection and distinct guidance for host-key, identity and file-permission errors.
 
 ## 1.0.4
 

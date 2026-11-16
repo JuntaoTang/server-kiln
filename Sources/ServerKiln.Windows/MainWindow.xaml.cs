@@ -101,15 +101,7 @@ public partial class MainWindow : Window
         if (AppState.ViewModel.SelectedServer?.Config is not { } server) return;
         try
         {
-            var info = SshSession.CreateStartInfo(server, AppState.Preferences.SshExecutable, AppState.Preferences.SshConfigPath);
-            info.ArgumentList.Clear();
-            if (!string.IsNullOrWhiteSpace(AppState.Preferences.SshConfigPath))
-            { info.ArgumentList.Add("-F"); info.ArgumentList.Add(AppState.Preferences.SshConfigPath); }
-            if (server.Port is { } port) { info.ArgumentList.Add("-p"); info.ArgumentList.Add(port.ToString()); }
-            info.ArgumentList.Add(server.Target);
-            info.UseShellExecute = true; info.CreateNoWindow = false;
-            info.RedirectStandardInput = false; info.RedirectStandardOutput = false; info.RedirectStandardError = false;
-            info.StandardInputEncoding = null; info.StandardOutputEncoding = null; info.StandardErrorEncoding = null;
+            var info = SshSession.CreateInteractiveStartInfo(server, AppState.Preferences.SshExecutable, AppState.Preferences.SshConfigPath);
             Process.Start(info)?.Dispose();
         }
         catch (Exception ex) { AppState.ShowError(ex); }
@@ -161,6 +153,10 @@ public partial class MainWindow : Window
         AppState.SavePreferences(AppState.Preferences with { Servers = [waiting] });
         DetailTabs.SelectedIndex = 0; UpdateLayout();
         AppState.ViewModel.Apply(new ServerReading(waiting, Error: "Synthetic SSH failure", Failures: 3, Activity: ServerActivity.Offline));
+        UpdateLayout();
+        AppState.ViewModel.Apply(new ServerReading(waiting,
+            Error: "No RSA host key is known for [gpu.example.com]:2222 and you have requested strict checking.\nHost key verification failed.",
+            Failures: 3, Activity: ServerActivity.Offline));
         UpdateLayout();
         DetailTabs.SelectedItem = HistoryTab; RefreshHistoryIfVisible(force: true); UpdateLayout();
         await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);

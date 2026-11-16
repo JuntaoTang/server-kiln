@@ -10,6 +10,8 @@ public sealed record ServerConfig
     public string Name { get; init; } = "";
     public string Target { get; init; } = "";
     public int? Port { get; init; }
+    /// Optional per-server override. Existing IdentityFile directives remain active when blank.
+    public string IdentityFile { get; init; } = "";
     public bool Enabled { get; init; } = true;
     public bool Muted { get; init; }
 

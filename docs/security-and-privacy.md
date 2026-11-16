@@ -9,6 +9,15 @@ no private key import into the application is required. Arguments bypass a local
 shell. Unknown host fingerprints and encrypted keys must first be handled in
 an interactive terminal using the same OpenSSH client and agent.
 
+The first-connection action and monitoring share the app's persistent
+`%LOCALAPPDATA%\ServerKiln\known_hosts`, also consulting the standard Windows
+OpenSSH `~/.ssh/known_hosts`. This overrides discarded host-key storage such as
+`UserKnownHostsFile /dev/null`; other custom host-key stores are not inherited.
+Interactive setup asks the user to verify an unknown fingerprint; background
+monitoring requires a trusted key. Changed host keys are never removed or
+accepted automatically. A per-server private-key override stores only the file
+path and uses `-i` / `IdentitiesOnly=yes` in both connection modes.
+
 Preferences, SQLite history and recent job metadata are stored under
 `%LOCALAPPDATA%\ServerKiln`. Process commands and working directories can be
 sensitive. An optional Bark key is stored separately with Windows DPAPI for the

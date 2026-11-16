@@ -10,7 +10,7 @@ public interface ICollectorSession : IAsyncDisposable
 
 /// <summary>One native OpenSSH process per host. Uses redirected UTF-8 pipes, never a local shell.</summary>
 public sealed class SshSession(ServerConfig server, string? executable = null, string? configPath = null,
-    TimeSpan? requestTimeout = null) : ICollectorSession
+    TimeSpan? requestTimeout = null, string? knownHostsPath = null) : ICollectorSession
 {
     private readonly SemaphoreSlim gate = new(1, 1);
     private Process? process;
@@ -42,30 +42,63 @@ public sealed class SshSession(ServerConfig server, string? executable = null, s
         throw new FileNotFoundException("Install the Windows OpenSSH Client optional feature, or select ssh.exe in Settings. / 请安装 Windows 的 OpenSSH 客户端，或在设置中指定 ssh.exe。");
     }
 
-    public static ProcessStartInfo CreateStartInfo(ServerConfig server, string? executable = null, string? configPath = null)
+    public static string DefaultKnownHostsPath => Path.Combine(PreferencesStore.DefaultDirectory, "known_hosts");
+
+    public static ProcessStartInfo CreateStartInfo(ServerConfig server, string? executable = null, string? configPath = null,
+        string? knownHostsPath = null) => CreateConnectionInfo(server, executable, configPath, knownHostsPath, interactive: false);
+
+    public static ProcessStartInfo CreateInteractiveStartInfo(ServerConfig server, string? executable = null, string? configPath = null,
+        string? knownHostsPath = null) => CreateConnectionInfo(server, executable, configPath, knownHostsPath, interactive: true);
+
+    private static ProcessStartInfo CreateConnectionInfo(ServerConfig server, string? executable, string? configPath,
+        string? knownHostsPath, bool interactive)
     {
         server.Validate();
         var info = new ProcessStartInfo(ResolveExecutable(executable))
         {
-            UseShellExecute = false, CreateNoWindow = true,
-            RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true,
-            StandardInputEncoding = new UTF8Encoding(false), StandardOutputEncoding = Encoding.UTF8,
-            StandardErrorEncoding = Encoding.UTF8
+            UseShellExecute = interactive, CreateNoWindow = !interactive,
+            RedirectStandardInput = !interactive, RedirectStandardOutput = !interactive, RedirectStandardError = !interactive
         };
+        if (!interactive)
+        {
+            info.StandardInputEncoding = new UTF8Encoding(false);
+            info.StandardOutputEncoding = Encoding.UTF8;
+            info.StandardErrorEncoding = Encoding.UTF8;
+        }
         if (!string.IsNullOrWhiteSpace(configPath))
         {
             var full = Path.GetFullPath(configPath);
             if (!File.Exists(full)) throw new FileNotFoundException("SSH configuration not found. / 找不到 SSH 配置文件。", full);
             info.ArgumentList.Add("-F"); info.ArgumentList.Add(full);
         }
-        foreach (var argument in new[] { "-T", "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=8",
+        // Use the same persistent trust store in interactive setup and monitoring. Inherited
+        // UserKnownHostsFile=/dev/null would otherwise make strict verification fail forever.
+        // Also honor host keys already verified in the standard Windows OpenSSH store.
+        var ownedStore = QuoteConfigPath(Path.GetFullPath(knownHostsPath ?? DefaultKnownHostsPath));
+        var userStore = QuoteConfigPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".ssh", "known_hosts"));
+        info.ArgumentList.Add("-o"); info.ArgumentList.Add($"UserKnownHostsFile={ownedStore} {userStore}");
+        if (!interactive) info.ArgumentList.Add("-T");
+        foreach (var argument in new[] { "-o", interactive ? "BatchMode=no" : "BatchMode=yes", "-o", interactive ? "StrictHostKeyChecking=ask" : "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=8",
             "-o", "ClearAllForwardings=yes", "-o", "ForwardAgent=no", "-o", "ForwardX11=no", "-o", "Compression=yes",
             "-o", "LogLevel=ERROR", "-o", "ServerAliveInterval=15", "-o", "ServerAliveCountMax=3",
             "-o", "ControlMaster=no", "-o", "ControlPath=none" }) info.ArgumentList.Add(argument);
         if (server.Port is { } port) { info.ArgumentList.Add("-p"); info.ArgumentList.Add(port.ToString(System.Globalization.CultureInfo.InvariantCulture)); }
+        if (!string.IsNullOrWhiteSpace(server.IdentityFile))
+        {
+            var identity = Path.GetFullPath(server.IdentityFile);
+            if (!File.Exists(identity)) throw new FileNotFoundException("SSH key file not found. / 找不到指定的 SSH 私钥文件。", identity);
+            info.ArgumentList.Add("-i"); info.ArgumentList.Add(identity);
+            info.ArgumentList.Add("-o"); info.ArgumentList.Add("IdentitiesOnly=yes");
+        }
         info.ArgumentList.Add(server.Target);
-        info.ArgumentList.Add(CollectorCommand);
+        if (!interactive) info.ArgumentList.Add(CollectorCommand);
         return info;
+    }
+
+    private static string QuoteConfigPath(string path)
+    {
+        if (path.Any(c => c is '"' or '\r' or '\n' or '\0')) throw new ArgumentException("Invalid known-hosts path.");
+        return "\"" + path.Replace('\\', '/') + "\"";
     }
 
     public async Task<ServerSnapshot> FetchAsync(CancellationToken cancellationToken = default)
@@ -131,7 +164,7 @@ public sealed class SshSession(ServerConfig server, string? executable = null, s
     private void Start()
     {
         lock (stderr) stderr.Clear();
-        process = new Process { StartInfo = CreateStartInfo(server, executable, configPath) };
+        process = new Process { StartInfo = CreateStartInfo(server, executable, configPath, knownHostsPath) };
         if (!process.Start()) throw new IOException("Could not start SSH.");
         process.StandardInput.NewLine = "\n";
         var reader = process.StandardError;

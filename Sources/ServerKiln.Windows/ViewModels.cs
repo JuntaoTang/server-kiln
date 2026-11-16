@@ -74,6 +74,18 @@ public sealed class ServerViewModel(ServerConfig config) : ObservableObject
     public string Rx => "↓ " + DisplayFormat.Rate(Snapshot?.System.NetRxRate);
     public string Tx => "↑ " + DisplayFormat.Rate(Snapshot?.System.NetTxRate);
     public string? Error => Reading.Error;
+    public string ErrorTitle => Localizer.Current[SshDiagnostics.Classify(Error) switch
+    {
+        SshFailureKind.UnverifiedHost => "UnverifiedHost", SshFailureKind.ChangedHost => "ChangedHost",
+        SshFailureKind.MissingKey => "MissingKey", SshFailureKind.KeyPermissions => "KeyPermissions",
+        SshFailureKind.Authentication => "Authentication", SshFailureKind.Timeout => "ConnectionTimeout", _ => "Error"
+    }];
+    public string ErrorHint => Localizer.Current[SshDiagnostics.Classify(Error) switch
+    {
+        SshFailureKind.UnverifiedHost => "UnverifiedHostHint", SshFailureKind.ChangedHost => "ChangedHostHint",
+        SshFailureKind.MissingKey => "MissingKeyHint", SshFailureKind.KeyPermissions => "KeyPermissionsHint",
+        SshFailureKind.Authentication => "AuthenticationHint", _ => "RetryHint"
+    }];
     public Visibility ErrorVisibility => string.IsNullOrEmpty(Error) ? Visibility.Collapsed : Visibility.Visible;
     public string GpuMessage => Snapshot is null ? Localizer.Current["NoData"] : Snapshot.GpuError
         ?? (Snapshot.IsGpuServer ? "" : Localizer.Current["NoGpu"]);

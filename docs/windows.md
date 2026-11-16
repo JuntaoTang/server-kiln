@@ -33,10 +33,22 @@ OpenSSH executable and configuration path can be selected in Settings.
 Windows OpenSSH, Git's SSH and WSL SSH have different config/agent environments;
 use the same native executable when preparing your keys and running the app.
 
-First connect interactively in a terminal, verify the host fingerprint, and
-unlock any encrypted key using the matching Windows `ssh-agent`. The app uses
-batch mode and strict host verification, so it never prompts for passwords or
-silently accepts an unknown or changed host key.
+Import or add the server, then use **First connection / verify fingerprint** in
+the error panel. It opens native OpenSSH with the same config, port, identity and
+trust store as monitoring. Compare the displayed SHA256 fingerprint with your
+provider or administrator before accepting it. Different ports require separate
+confirmation. Afterwards, return to the app and refresh. If the private key is
+encrypted, unlock it using the matching Windows `ssh-agent`; entering its
+passphrase in a standalone terminal does not unlock background monitoring.
+
+Monitoring uses batch mode and strict host verification. Its primary trust store
+is `%LOCALAPPDATA%\ServerKiln\known_hosts`, with the standard
+`%USERPROFILE%\.ssh\known_hosts` as a fallback. The app deliberately overrides a
+config's `UserKnownHostsFile /dev/null` so a confirmed fingerprint persists;
+custom known-hosts files outside these two stores are not consulted. The first
+connection asks for confirmation; background monitoring only accepts a known key.
+If a fingerprint changes, verify the change with the provider before updating
+that host's saved entry. The app never accepts or removes host keys automatically.
 
 ```powershell
 ssh gpu-lab
@@ -63,7 +75,17 @@ by the importer; their explicit aliases can be added manually.
 Relative `Include` paths are resolved under the user's `.ssh` directory, as in
 Windows OpenSSH, including when a custom `-F` configuration file is used.
 
-请先在终端完成主机指纹确认和密钥解锁，再在应用中导入配置或手动添加。
+**Edit → Private key file** can select a PEM / OpenSSH key for an individual
+server. Leaving this blank retains `IdentityFile` and agent behavior from your
+SSH configuration. A selected file is passed as a separate `-i` argument with
+`IdentitiesOnly=yes`; its contents are never copied into the app's settings.
+
+导入后若提示「尚未确认服务器指纹」，点击「首次连接 / 确认指纹」，与云平台或管理员
+核对终端显示的 SHA256 指纹后确认，再回到应用刷新。不同端口分别确认。
+指纹保存到 `%LOCALAPPDATA%\ServerKiln\known_hosts`，即使原配置把
+`UserKnownHostsFile` 设为 `/dev/null` 也能保存；应用不会修改原 SSH 配置。
+「编辑 → 私钥文件」可按服务器选择 key 文件；留空则继续沿用原来的 `IdentityFile`。
+服务器指纹用于确认连接对象，私钥用于登录身份认证，两者是不同的检查。
 跳板机和代理遵循所选 OpenSSH 配置；Mac 的 `nc -b en0`、Unix 路径或 WSL 内的
 命令不能直接当作 Windows 代理程序使用，需要换成 Windows 可执行的对应命令。
 路径支持中文和空格。基础监控不修改远端 `authorized_keys`。

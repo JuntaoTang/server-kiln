@@ -41,6 +41,8 @@ internal static class TestSuite
             ("job grouping, grace period and persistence", Jobs),
             ("OpenSSH import: quotes, includes, CRLF and cycles", Import),
             ("SSH argument boundaries and strict host checking", Arguments),
+            ("private-key override and interactive trust-store parity", IdentityArguments),
+            ("host verification and private-key errors are distinguished", Diagnostics),
             ("native Windows OpenSSH accepts the generated configuration", NativeOpenSsh),
             ("SSH persistent process, split frames and stderr drain", PersistentSsh),
             ("SSH timeout and cancellation terminate the process", TimeoutAndCancellation),
@@ -156,8 +158,9 @@ internal static class TestSuite
     {
         using var scratch = new Scratch();
         var config = scratch.File("配置 with spaces");
-        File.WriteAllText(config, "Host fixture-native\n HostName gpu.example.com\n User researcher\n Port 2222\n");
-        var info = SshSession.CreateStartInfo(Server("fixture-native"), configPath: config);
+        File.WriteAllText(config, "Host fixture-native\n HostName gpu.example.com\n User researcher\n Port 2222\n UserKnownHostsFile /dev/null\n StrictHostKeyChecking no\n");
+        var trust = scratch.File("指纹 with spaces/known_hosts");
+        var info = SshSession.CreateStartInfo(Server("fixture-native"), configPath: config, knownHostsPath: trust);
         info.ArgumentList.Insert(0, "-G"); // Resolve options only: no network or private-key access.
         using var process = Process.Start(info)!;
         var output = process.StandardOutput.ReadToEndAsync();
@@ -167,6 +170,45 @@ internal static class TestSuite
         var resolved = await output;
         Check.True(resolved.Contains("hostname gpu.example.com", StringComparison.Ordinal));
         Check.True(resolved.Contains("port 2222", StringComparison.Ordinal));
+        var store = resolved.Split('\n').Single(l => l.StartsWith("userknownhostsfile ", StringComparison.Ordinal));
+        Check.True(store.Contains(trust.Replace('\\', '/'), StringComparison.Ordinal));
+        Check.True(!store.Contains("/dev/null", StringComparison.Ordinal));
+        Check.True(resolved.Contains("stricthostkeychecking true", StringComparison.Ordinal));
+    }
+    private static Task IdentityArguments()
+    {
+        using var scratch = new Scratch();
+        var key = scratch.File("私钥 with spaces (1).pem"); File.WriteAllText(key, "synthetic fixture; never used for authentication");
+        var trust = scratch.File("host keys/known_hosts");
+        var server = Server() with { IdentityFile = key, Port = 2222 };
+        var monitor = SshSession.CreateStartInfo(server, Environment.ProcessPath, knownHostsPath: trust);
+        var interactive = SshSession.CreateInteractiveStartInfo(server, Environment.ProcessPath, knownHostsPath: trust);
+        foreach (var info in new[] { monitor, interactive })
+        {
+            var keyIndex = info.ArgumentList.IndexOf("-i");
+            Check.Equal(key, info.ArgumentList[keyIndex + 1]); Check.True(info.ArgumentList.Contains("IdentitiesOnly=yes"));
+            Check.True(info.ArgumentList.Contains("2222"));
+        }
+        var monitorStore = monitor.ArgumentList.Single(a => a.StartsWith("UserKnownHostsFile=", StringComparison.Ordinal));
+        Check.Equal(monitorStore, interactive.ArgumentList.Single(a => a.StartsWith("UserKnownHostsFile=", StringComparison.Ordinal)));
+        Check.True(monitorStore.Contains(trust.Replace('\\', '/'), StringComparison.Ordinal));
+        Check.True(interactive.UseShellExecute && !interactive.CreateNoWindow && !interactive.RedirectStandardInput);
+        Check.True(interactive.ArgumentList.Contains("StrictHostKeyChecking=ask"));
+        Check.True(interactive.ArgumentList.Contains("BatchMode=no"));
+        Check.True(!interactive.ArgumentList.Contains(SshSession.CollectorCommand));
+        Check.Equal(server.Target, interactive.ArgumentList[^1]);
+        Check.Throws<FileNotFoundException>(() => SshSession.CreateStartInfo(server with { IdentityFile = scratch.File("missing.pem") }, Environment.ProcessPath));
+        return Task.CompletedTask;
+    }
+    private static Task Diagnostics()
+    {
+        Check.Equal(SshFailureKind.UnverifiedHost, SshDiagnostics.Classify("No RSA host key is known for [gpu.example.com]:2222 and you have requested strict checking.\nHost key verification failed."));
+        Check.Equal(SshFailureKind.ChangedHost, SshDiagnostics.Classify("WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!\nHost key verification failed."));
+        Check.Equal(SshFailureKind.Authentication, SshDiagnostics.Classify("Permission denied (publickey)."));
+        Check.Equal(SshFailureKind.KeyPermissions, SshDiagnostics.Classify("WARNING: UNPROTECTED PRIVATE KEY FILE!\nLoad key: bad permissions"));
+        Check.Equal(SshFailureKind.MissingKey, SshDiagnostics.Classify("Warning: Identity file fixture.pem not accessible: No such file or directory."));
+        Check.Equal(SshFailureKind.Timeout, SshDiagnostics.Classify("SSH collection timed out."));
+        return Task.CompletedTask;
     }
     private static async Task TimeoutAndCancellation()
     {
@@ -210,7 +252,7 @@ internal static class TestSuite
     {
         using var scratch = new Scratch(); var store = new PreferencesStore(scratch.Path);
         Check.Equal(30, store.Load().BackgroundIntervalSeconds);
-        var prefs = new AppPreferences { Servers = [Server() with { Name = "训练" }], SshConfigPath = "C:\\ssh config\\配置", Language = "zh" };
+        var prefs = new AppPreferences { Servers = [Server() with { Name = "训练", IdentityFile = scratch.File("私钥 (1).pem") }], SshConfigPath = "C:\\ssh config\\配置", Language = "zh" };
         store.Save(prefs); var loaded = store.Load(); Check.Equal(prefs.Servers[0], loaded.Servers[0]); Check.Equal(prefs.SshConfigPath, loaded.SshConfigPath);
         Check.Throws<ArgumentException>(() => store.Save(prefs with { BackgroundIntervalSeconds = 0 }));
         Check.Equal(30, store.Load().BackgroundIntervalSeconds);

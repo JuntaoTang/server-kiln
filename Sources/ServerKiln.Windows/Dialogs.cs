@@ -58,11 +58,21 @@ public sealed class ServerEditor : Window
     {
         original = config ?? new();
         Title = Localizer.Current[config is null ? "Add" : "Edit"];
-        Width = 520; Height = 475; ResizeMode = ResizeMode.NoResize;
+        Width = 580; Height = 655; MinWidth = 520; MinHeight = 550;
         var (fields, buttons) = DialogLayout.Build(this);
         var name = DialogLayout.Input(fields, "Name", original.Name);
         var target = DialogLayout.Input(fields, "Target", original.Target);
         var port = DialogLayout.Input(fields, "Port", original.Port?.ToString() ?? "");
+        var identity = DialogLayout.Input(fields, "IdentityFile", original.IdentityFile);
+        var browseKey = new Button { Content = Localizer.Current["Browse"], HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 5, 0, 0) };
+        browseKey.Click += (_, _) =>
+        {
+            var picker = new OpenFileDialog { Title = Localizer.Current["IdentityFile"], CheckFileExists = true,
+                Filter = "SSH private key|*.pem;*.key;id_*|All files|*.*" };
+            if (picker.ShowDialog(this) == true) identity.Text = picker.FileName;
+        };
+        fields.Children.Add(browseKey);
+        DialogLayout.Help(fields, "IdentityHelp");
         var enabled = DialogLayout.Check(fields, "Enabled", original.Enabled);
         var muted = DialogLayout.Check(fields, "Muted", original.Muted);
         DialogLayout.Button(buttons, "Cancel", (_, _) => DialogResult = false).IsCancel = true;
@@ -72,7 +82,14 @@ public sealed class ServerEditor : Window
             {
                 int? parsedPort = string.IsNullOrWhiteSpace(port.Text) ? null : int.Parse(port.Text, CultureInfo.InvariantCulture);
                 Result = original with { Name = name.Text.Trim(), Target = target.Text.Trim(), Port = parsedPort,
+                    IdentityFile = identity.Text.Trim(),
                     Enabled = enabled.IsChecked == true, Muted = muted.IsChecked == true };
+                if (!string.IsNullOrWhiteSpace(Result.IdentityFile))
+                {
+                    var path = Path.GetFullPath(Result.IdentityFile);
+                    if (!File.Exists(path)) throw new FileNotFoundException(Localizer.Current["MissingKeyHint"], path);
+                    Result = Result with { IdentityFile = path };
+                }
                 Result.Validate(); DialogResult = true;
             }
             catch (Exception ex) { MessageBox.Show(this, ex.Message, Localizer.Current["Error"], MessageBoxButton.OK, MessageBoxImage.Warning); }
