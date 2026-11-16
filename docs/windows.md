@@ -14,16 +14,21 @@ Windows 客户端用于监控远端 **Linux** 服务器，首要支持 Windows 1
 Extract `ServerKiln-<version>-win-x64.zip` and run `ServerKiln.exe`. The published
 package includes the .NET desktop runtime. Keep the entire extracted directory.
 Optionally run its `install.ps1` to copy it into `%LOCALAPPDATA%\Programs\ServerKiln`
-and create a Start menu shortcut. No administrator access is needed by this installer.
+and create desktop and Start menu shortcuts. No administrator access is needed
+by this installer. Pass `-NoDesktopShortcut` to omit the desktop shortcut.
 
 解压 Windows ZIP 后运行 `ServerKiln.exe`，请保留同目录的依赖文件。
-可运行压缩包内的 `install.ps1` 安装到当前用户目录并创建开始菜单快捷方式。
+可运行压缩包内的 `install.ps1` 安装到当前用户目录并创建桌面、开始菜单快捷方式。
 在设置中可选开启登录启动。关闭窗口后应用仍在托盘运行；右键托盘图标选择「退出」结束监控。
+再次双击快捷方式会恢复已在托盘运行的窗口。首次安装新版时，如果旧版仍在运行，
+请先从旧版托盘菜单退出一次，再使用新快捷方式打开。
 
 Verify the archive against its `.sha256` file with `Get-FileHash -Algorithm SHA256`.
 This initial build has no automatic updater or Authenticode signature. To update,
 quit from the tray and replace the application files or run the newer installer.
 Settings and history remain in the separate data directory below.
+Opening a shortcut again reveals the existing tray instance. When installing over
+an older build without this behavior, quit the older tray instance once first.
 
 ## SSH setup / SSH 配置
 
@@ -111,6 +116,10 @@ in `bark-key.dat`, encrypted with DPAPI for the current Windows account.
 如需卸载，先关闭登录启动、从托盘退出，然后删除程序目录和开始菜单快捷方式。
 
 ## iPhone notifications / iPhone 通知
+
+This build provides phone notifications, but no mobile resource dashboard or
+browser view. Live metrics and history are currently viewed in the Windows app.
+当前手机端支持接收通知，尚无手机实时监控面板或网页；指标和历史曲线在 Windows 端查看。
 
 The original ServerKiln iPhone app and widgets are not open source, and their
 CloudKit / iCloud Keychain integration requires the official Apple container and

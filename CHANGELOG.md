@@ -13,6 +13,8 @@
 - First-connection fingerprint confirmation with a persistent Windows trust store,
   including configurations that discard known hosts; per-server private-key file
   selection and distinct guidance for host-key, identity and file-permission errors.
+- User-level installation creates desktop and Start menu shortcuts; reopening a
+  shortcut restores the running tray window through a local per-user channel.
 
 ## 1.0.4
 

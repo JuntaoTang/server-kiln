@@ -21,6 +21,8 @@ public partial class App : System.Windows.Application
     private readonly HttpClient http = new(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(12) };
     private Forms.NotifyIcon? tray;
     private Mutex? singleton;
+    private InstanceActivation? activation;
+    private string activationPipe = "";
     private bool ownsMutex;
     private Task? loop;
     private Task? pushes;
@@ -35,10 +37,12 @@ public partial class App : System.Windows.Application
             Demo = e.Args.Contains("--demo") || e.Args.Contains("--smoke-test");
             storageDirectory = Demo ? Path.Combine(Path.GetTempPath(), "ServerKiln-demo-" + Guid.NewGuid().ToString("N")) : PreferencesStore.DefaultDirectory;
             var mutexId = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(storageDirectory)))[..16];
+            activationPipe = "ServerKiln.Windows." + mutexId + "." + System.Diagnostics.Process.GetCurrentProcess().SessionId;
             singleton = new Mutex(true, @"Local\ServerKiln.Windows." + mutexId, out ownsMutex);
             if (!ownsMutex)
             {
-                MessageBox.Show("ServerKiln is already running in the system tray. / ServerKiln 已在系统托盘运行。", "ServerKiln");
+                if (!InstanceActivation.TryActivateAsync(activationPipe).GetAwaiter().GetResult())
+                    MessageBox.Show("ServerKiln is already running in the system tray. Quit the older version there once, then open this shortcut again. / ServerKiln 已在系统托盘运行，请先从托盘退出旧版一次，再重新打开快捷方式。", "ServerKiln");
                 Shutdown(); return;
             }
             store = new PreferencesStore(storageDirectory);
@@ -58,6 +62,10 @@ public partial class App : System.Windows.Application
             ViewModel.StatusMessage = Localizer.Current[Demo ? "Demo" : "Local"];
             MainWindow = new MainWindow();
             SetupTray();
+            activation = new InstanceActivation(activationPipe, () => Dispatcher.BeginInvoke(() =>
+            {
+                if (!Exiting) ShowWindow();
+            }));
             if (!e.Args.Contains("--start-in-tray")) MainWindow.Show();
             if (Demo)
             {
@@ -202,6 +210,7 @@ public partial class App : System.Windows.Application
         MainWindow.Show(); MainWindow.WindowState = WindowState.Normal; MainWindow.Activate();
     }
     public void ShowError(Exception ex) => MessageBox.Show(MainWindow, ex.Message, Localizer.Current["Error"], MessageBoxButton.OK, MessageBoxImage.Warning);
+    internal Task<bool> ReactivateForSmokeTestAsync() => InstanceActivation.TryActivateAsync(activationPipe);
 
     public void SetTheme(string theme)
     {
@@ -223,6 +232,7 @@ public partial class App : System.Windows.Application
         if (Exiting) return;
         Exiting = true;
         lifetime.Cancel();
+        if (activation is not null) await activation.DisposeAsync();
         if (loop is not null) await loop;
         if (pushes is not null) await pushes;
         await monitor.DisposeAsync();

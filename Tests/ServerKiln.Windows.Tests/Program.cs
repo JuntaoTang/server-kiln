@@ -43,6 +43,7 @@ internal static class TestSuite
             ("SSH argument boundaries and strict host checking", Arguments),
             ("private-key override and interactive trust-store parity", IdentityArguments),
             ("host verification and private-key errors are distinguished", Diagnostics),
+            ("repeated shortcut activation and absent-instance timeout", ShortcutActivation),
             ("native Windows OpenSSH accepts the generated configuration", NativeOpenSsh),
             ("SSH persistent process, split frames and stderr drain", PersistentSsh),
             ("SSH timeout and cancellation terminate the process", TimeoutAndCancellation),
@@ -209,6 +210,17 @@ internal static class TestSuite
         Check.Equal(SshFailureKind.MissingKey, SshDiagnostics.Classify("Warning: Identity file fixture.pem not accessible: No such file or directory."));
         Check.Equal(SshFailureKind.Timeout, SshDiagnostics.Classify("SSH collection timed out."));
         return Task.CompletedTask;
+    }
+    private static async Task ShortcutActivation()
+    {
+        var pipe = "ServerKiln-tests-" + Guid.NewGuid().ToString("N");
+        var revealed = 0;
+        await using (var activation = new InstanceActivation(pipe, () => Interlocked.Increment(ref revealed)))
+        {
+            for (var n = 0; n < 4; n++) Check.True(await InstanceActivation.TryActivateAsync(pipe));
+            Check.Equal(4, revealed);
+        }
+        Check.True(!await InstanceActivation.TryActivateAsync(pipe, timeoutMilliseconds: 100));
     }
     private static async Task TimeoutAndCancellation()
     {
