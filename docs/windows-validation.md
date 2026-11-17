@@ -29,9 +29,10 @@ Workflow definitions also passed Actionlint 1.7.12 locally.
   fixed light palette, plus all settings pages and import dialogs. The redesigned caption
   checks maximize / restore, minimized-instance activation and the server action
   menu. Fleet checks cover Mac-compatible GPU-server denominators, configured busy
-  thresholds, CPU-only / paused / offline hosts, retained task expansion, PID reuse,
-  sample-based start times, per-card action context and literal PowerShell SSH
-  arguments. WPF binding errors fail the smoke run. Synthetic exports cover the
+  thresholds, CPU-only / paused / offline hosts, retained server selection / tab /
+  task expansion, PID reuse, sample-based start times, sidebar selection / detail
+  binding, selected-server action context and literal PowerShell SSH arguments.
+  WPF binding errors fail the smoke run. Synthetic exports cover the
   fleet, GPU meters, expanded task detail, jobs, per-GPU history, a compact window
   and settings. A legacy-settings test verifies that an obsolete dark-theme
   preference preserves hosts, identity paths, language and polling configuration.

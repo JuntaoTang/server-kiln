@@ -20,9 +20,9 @@ public partial class MainWindow : Window
         DataContext = AppState.ViewModel;
         Width = Math.Min(Width, SystemParameters.WorkArea.Width);
         Height = Math.Min(Height, SystemParameters.WorkArea.Height);
-        AppState.ViewModel.SelectionChanged += () => { historyServer = null; RefreshHistoryIfVisible(); };
+        AppState.ViewModel.SelectionChanged += () => { historyServer = null; DetailScroll.ScrollToTop(); RefreshHistoryIfVisible(force: true); };
         StateChanged += (_, _) => UpdateCaption();
-        Localizer.Current.PropertyChanged += (_, _) => UpdateCaption();
+        Localizer.Current.PropertyChanged += (_, _) => { UpdateCaption(); RefreshHistoryIfVisible(force: true); };
         UpdateCaption();
     }
 
@@ -67,8 +67,8 @@ public partial class MainWindow : Window
             if (index < 0) servers.Add(result); else servers[index] = result;
             AppState.SavePreferences(AppState.Preferences with { Servers = servers.ToArray() });
             AppState.ViewModel.SelectedServer = AppState.ViewModel.Servers.First(s => s.Config.Id == result.Id);
-            AppState.ViewModel.SelectedServer.IsExpanded = true;
-            BackToFleet(this, e: new RoutedEventArgs());
+            ShowOverview();
+            ServerList.ScrollIntoView(AppState.ViewModel.SelectedServer);
         }
         catch (Exception ex) { AppState.ShowError(ex); }
     }
@@ -81,7 +81,7 @@ public partial class MainWindow : Window
         {
             AppState.SavePreferences(AppState.Preferences with { Servers = AppState.Preferences.Servers.Where(s => s.Id != selected.Config.Id).ToArray() });
             AppState.History.Delete(selected.Config.Id);
-            BackToFleet(this, new RoutedEventArgs());
+            ShowOverview();
         }
         catch (Exception ex) { AppState.ShowError(ex); }
     }
@@ -156,18 +156,14 @@ public partial class MainWindow : Window
         catch (Exception ex) { AppState.ShowError(ex); }
     }
 
-    private void OpenHistory(object sender, RoutedEventArgs e) { if (ServerFor(sender) is { } server) ShowDetails(server, jobs: false); }
     private void OpenJobs(object sender, RoutedEventArgs e) { if (ServerFor(sender) is { } server) ShowDetails(server, jobs: true); }
     private void ShowDetails(ServerViewModel server, bool jobs)
     {
         AppState.ViewModel.SelectedServer = server;
-        FleetView.Visibility = Visibility.Collapsed;
-        DetailView.Visibility = Visibility.Visible;
         DetailTabs.SelectedItem = jobs ? JobsTab : HistoryTab;
         RefreshHistoryIfVisible(force: true);
     }
-    private void BackToFleet(object sender, RoutedEventArgs e)
-    { DetailView.Visibility = Visibility.Collapsed; FleetView.Visibility = Visibility.Visible; }
+    private void ShowOverview() => DetailTabs.SelectedItem = OverviewTab;
 
     private void ChangeHistoryRange(object sender, RoutedEventArgs e)
     { historyRange = Enum.Parse<HistoryRange>((string)((Button)sender).Tag); RefreshHistoryIfVisible(force: true); }
@@ -219,15 +215,15 @@ public partial class MainWindow : Window
         Directory.CreateDirectory(directory);
         foreach (var legacy in new[] { "overview-dark.png", "history-per-gpu-dark.png" })
             File.Delete(Path.Combine(directory, legacy));
-        Width = 1040; Height = 900; WindowState = WindowState.Normal;
+        Width = 1220; Height = 830; WindowState = WindowState.Normal;
         var first = AppState.ViewModel.Servers.First();
         AppState.ViewModel.SelectedServer = first;
-        foreach (var server in AppState.ViewModel.Servers) server.IsExpanded = server == AppState.ViewModel.Servers.Skip(1).FirstOrDefault();
-        BackToFleet(this, new RoutedEventArgs());
-        FleetScroll.ScrollToTop();
+        ShowOverview();
+        DetailScroll.ScrollToTop();
         await SaveSnapshotAsync(Path.Combine(directory, "overview-light.png"));
-        foreach (var server in AppState.ViewModel.Servers) server.IsExpanded = server == first;
+        AppState.ViewModel.SelectedServer = AppState.ViewModel.Servers.Last();
         await SaveSnapshotAsync(Path.Combine(directory, "server-detail-light.png"));
+        AppState.ViewModel.SelectedServer = first;
         if (first.Tasks.FirstOrDefault() is { } firstTask) firstTask.IsExpanded = true;
         await SaveSnapshotAsync(Path.Combine(directory, "task-detail-light.png"));
         foreach (var task in first.Tasks) task.IsExpanded = false;
@@ -241,8 +237,7 @@ public partial class MainWindow : Window
         RefreshHistoryIfVisible(force: true);
         await SaveSnapshotAsync(Path.Combine(directory, "history-live-light.png"));
         Width = MinWidth; Height = MinHeight;
-        BackToFleet(this, new RoutedEventArgs());
-        foreach (var server in AppState.ViewModel.Servers) server.IsExpanded = false;
+        ShowOverview();
         await SaveSnapshotAsync(Path.Combine(directory, "overview-compact-light.png"));
         var settings = new SettingsWindow { Owner = this };
         settings.Show();
@@ -279,11 +274,10 @@ public partial class MainWindow : Window
             AppState.SavePreferences(AppState.Preferences with { Language = language });
             foreach (var server in AppState.ViewModel.Servers)
             {
-                AppState.ViewModel.SelectedServer = server;
-                BackToFleet(this, new RoutedEventArgs());
-                server.IsExpanded = true;
+                ServerList.SelectedItem = server;
+                ShowOverview();
                 foreach (var task in server.Tasks.Concat(server.Processes)) task.IsExpanded = true;
-                UpdateLayout();
+                await VerifyServerSelectionAsync(server);
                 ShowDetails(server, jobs: false);
                 foreach (var range in Enum.GetValues<HistoryRange>())
                     foreach (var perGpu in new[] { false, true })
@@ -298,18 +292,7 @@ public partial class MainWindow : Window
             var editor = new ServerEditor(null) { Owner = this }; editor.Show(); editor.UpdateLayout(); editor.Close();
             var importer = new ImportWindow([new SshHostEntry("fixture", "gpu.example.com", "researcher", 22, "synthetic")]) { Owner = this };
             importer.Show(); importer.UpdateLayout(); importer.Close();
-            BackToFleet(this, new RoutedEventArgs()); UpdateLayout();
-            var menuButtons = Descendants<Button>(ServerCards).Where(b => b.ContextMenu is not null).ToArray();
-            if (menuButtons.Length != AppState.ViewModel.Servers.Count) throw new InvalidOperationException("A server action menu was not rendered.");
-            foreach (var button in menuButtons)
-            {
-                OpenServerMenu(button, new RoutedEventArgs());
-                if (!button.ContextMenu.IsOpen || button.ContextMenu.DataContext != button.DataContext)
-                    throw new InvalidOperationException("Server actions lost their server context.");
-                foreach (var item in button.ContextMenu.Items.OfType<MenuItem>())
-                    if (ServerFor(item) != ServerFor(button)) throw new InvalidOperationException("Menu action targets the wrong server.");
-                button.ContextMenu.IsOpen = false;
-            }
+            ShowOverview(); UpdateLayout();
             await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         }
         Width = MinWidth; Height = MinHeight;
@@ -318,8 +301,7 @@ public partial class MainWindow : Window
         if (AppState.ViewModel.EmptyVisibility != Visibility.Visible) throw new InvalidOperationException("Empty fleet is not visible.");
         var waiting = new ServerConfig { Name = "Fixture", Target = "gpu.example.com" };
         AppState.SavePreferences(AppState.Preferences with { Servers = [waiting] });
-        AppState.ViewModel.SelectedServer!.IsExpanded = true;
-        BackToFleet(this, new RoutedEventArgs()); UpdateLayout();
+        ShowOverview(); UpdateLayout();
         AppState.ViewModel.Apply(new ServerReading(waiting, Error: "Synthetic SSH failure", Failures: 3, Activity: ServerActivity.Offline));
         UpdateLayout();
         AppState.ViewModel.Apply(new ServerReading(waiting,
@@ -364,14 +346,27 @@ public partial class MainWindow : Window
         }
     }
 
-    private static IEnumerable<T> Descendants<T>(DependencyObject root) where T : DependencyObject
+    private async Task VerifyServerSelectionAsync(ServerViewModel server)
     {
-        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
-        {
-            var child = VisualTreeHelper.GetChild(root, i);
-            if (child is T match) yield return match;
-            foreach (var descendant in Descendants<T>(child)) yield return descendant;
-        }
+        UpdateLayout();
+        if (!ReferenceEquals(AppState.ViewModel.SelectedServer, server) || !ReferenceEquals(DetailsHeader.DataContext, server)
+            || !ReferenceEquals(OverviewBody.DataContext, server)) throw new InvalidOperationException("Sidebar selection did not update the detail pane.");
+        await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+        OpenServerMenu(ServerMenuButton, new RoutedEventArgs());
+        if (!ServerMenuButton.ContextMenu.IsOpen) throw new InvalidOperationException("Server actions menu did not open.");
+        foreach (var item in ServerMenuButton.ContextMenu.Items.OfType<MenuItem>())
+            if (ServerFor(item) != server) throw new InvalidOperationException("Server action targets a previously selected host.");
+        ServerMenuButton.ContextMenu.IsOpen = false;
+        // The same popup is reused after switching hosts; let its native close finish.
+        await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+        var selectedTab = DetailTabs.SelectedItem;
+        AppState.ViewModel.Apply(server.Reading);
+        UpdateLayout();
+        if (!ReferenceEquals(ServerList.SelectedItem, server) || DetailTabs.SelectedItem != selectedTab
+            || server.Tasks.Any(task => !task.IsExpanded)) throw new InvalidOperationException("A sample changed selection, tab or open task details.");
+        ShowDetails(server, jobs: true); UpdateLayout();
+        if (!ServerList.IsVisible || !JobsTab.IsSelected) throw new InvalidOperationException("Sidebar disappeared while viewing job history.");
+        ShowOverview();
     }
 
     private void VerifyFleetModels()
@@ -383,7 +378,6 @@ public partial class MainWindow : Window
         Check(fleet.TrainingCount == 1 && fleet.TrainingTotal == "/ 2" && fleet.BusyGpuCount == 2 && fleet.GpuTotal == "/ 3"
             && fleet.OnlineCount == 3 && fleet.OnlineTotal == "/ 3", "Fleet totals differ from Mac GPU-server semantics.");
         var first = fleet.Servers.First();
-        first.IsExpanded = true;
         var tasks = first.Tasks;
         var task = tasks.First();
         var reading = first.Reading;
@@ -392,8 +386,8 @@ public partial class MainWindow : Window
         var started = task.Started;
         first.Apply(reading with { Snapshot = snapshot with { FetchedAt = snapshot.FetchedAt.AddSeconds(3),
             Tasks = snapshot.Tasks.Select(t => t with { ElapsedSeconds = t.ElapsedSeconds + 3 }).ToArray() } });
-        Check(ReferenceEquals(tasks, first.Tasks) && ReferenceEquals(task, first.Tasks.First()) && task.IsExpanded && first.IsExpanded,
-            "A sample reset expanded server or task state.");
+        Check(ReferenceEquals(tasks, first.Tasks) && ReferenceEquals(task, first.Tasks.First()) && task.IsExpanded && ReferenceEquals(fleet.SelectedServer, first),
+            "A sample reset server selection or task expansion.");
         Check(task.Started == started && task.Command == snapshot.Tasks.First().Command, "Task start time or full command changed unexpectedly.");
         first.Apply(reading with { Snapshot = snapshot with { Tasks = snapshot.Tasks.Select(t => t with { Command = "python replacement.py" }).ToArray() } });
         Check(!task.IsExpanded, "PID reuse retained another task's expanded state.");

@@ -19,7 +19,11 @@ public sealed class FleetViewModel : ObservableObject
     public ServerViewModel? SelectedServer
     {
         get => selected;
-        set { selected = value; Changed(); Changed(nameof(DetailVisibility)); SelectionChanged?.Invoke(); }
+        set
+        {
+            if (ReferenceEquals(selected, value)) return;
+            selected = value; Changed(); Changed(nameof(DetailVisibility)); SelectionChanged?.Invoke();
+        }
     }
     public event Action? SelectionChanged;
     private string message = "";
@@ -69,8 +73,6 @@ public sealed class FleetViewModel : ObservableObject
 public sealed class ServerViewModel(ServerConfig config, BusyPolicy? policy = null) : ObservableObject
 {
     private BusyPolicy policy = policy ?? new();
-    private bool expanded;
-    public bool IsExpanded { get => expanded; set { expanded = value; Changed(); } }
     public ObservableCollection<GpuViewModel> Gpus { get; } = [];
     public ObservableCollection<ProcessViewModel> Tasks { get; } = [];
     public ObservableCollection<ProcessViewModel> Processes { get; } = [];

@@ -67,7 +67,7 @@ and sends no phone notifications.
 
 ![Windows light overview in Chinese](screenshots/windows/zh/overview-light.png)
 
-![Windows GPU meters and system resources](screenshots/windows/zh/server-detail-light.png)
+![Windows CPU-only server details](screenshots/windows/zh/server-detail-light.png)
 
 ![Windows expanded running task](screenshots/windows/zh/task-detail-light.png)
 

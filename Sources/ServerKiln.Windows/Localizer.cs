@@ -23,6 +23,7 @@ public sealed class Localizer : INotifyPropertyChanged
     {
         ["Device"] = ("Device", "设备"), ["Utilization"] = ("Utilization", "利用率"),
         ["TrainingServers"] = ("Servers training", "服务器训练中"), ["BusyGpus"] = ("GPUs in use", "GPU 使用中"),
+        ["FleetOverview"] = ("Overview", "概况"),
         ["OnlineServers"] = ("Servers online", "服务器在线"), ["System"] = ("System", "系统"), ["Load"] = ("Load", "负载"),
         ["NoRunningTasks"] = ("No running training jobs", "没有运行中的任务"), ["LastJob"] = ("Last job", "上一条任务"),
         ["JobHistory"] = ("Job history", "任务记录"), ["BackToServers"] = ("‹  Servers", "‹  返回服务器"),

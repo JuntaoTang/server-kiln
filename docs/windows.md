@@ -107,31 +107,39 @@ SSH configuration. A selected file is passed as a separate `-i` argument with
 - Aggregate / per-GPU history, utilization / VRAM selection and recent grouped jobs.
 - English / Chinese switching and a fixed light interface.
 
-The three summary tiles follow the Mac app: training servers / GPU servers,
-GPUs in use / total GPUs, and online / enabled servers. CPU-only hosts count
-in online totals. Busy GPU counts use the policy in Settings; paused servers
-and offline GPU capacity are excluded from these totals.
+The left sidebar keeps fleet totals and the server list visible while the right
+pane shows the selected server. The summary follows the Mac app: training
+servers / GPU servers, GPUs in use / total GPUs, and online / enabled servers.
+CPU-only hosts count in online totals. Busy GPU counts use the policy in Settings;
+paused servers and offline GPU capacity are excluded from these totals.
 
-Click a server card to expand its GPU meters, running tasks and system resources.
-Click a task to see its full command, working directory, PID, sample-based start
-time and CPU / memory, with separate copy actions. Expansion stays in place when
-new samples arrive. The process list remains available in its own disclosure.
-**History** opens resource charts; **Job history** shows recorded start / end times.
-Use **Servers** to return to the fleet. Terminal, Copy SSH and the **⋯** menu
-(Edit, First connection, Job history, Remove) belong to each server card.
-The copied SSH command is for PowerShell and preserves the configured SSH
-executable, config file, port, identity and resolved host-verification options.
-Refresh, Settings and language controls stay in the fixed footer.
+Select a server in the sidebar to see its GPU meters, running tasks and system
+resources. Click a task to see its full command, working directory, PID,
+sample-based start time and CPU / memory, with separate copy actions. New samples
+preserve the selected server, active tab and expanded tasks. The process list
+remains available in its own disclosure. **Job history** shows recorded start /
+end times; **History** contains resource charts. The sidebar remains visible on
+all three tabs so another server can be selected directly.
 
-顶部三个汇总与 Mac 原版一致：训练中的 GPU 服务器、使用中的 GPU，以及在线服务器。
-纯 CPU 主机计入在线数；忙碌统计遵循设置中的利用率 / 显存阈值，暂停的主机和离线的
-GPU 容量不计入对应汇总。
-点击服务器卡片可展开 GPU 横条、运行任务和系统资源；继续展开任务可查看完整命令、
-目录、PID、开始时间、CPU / 内存，并分别复制命令、目录和 PID。自动刷新保留展开状态。
-进程列表可单独展开。「历史」查看资源曲线，「任务记录」查看运行记录及起止时间，
-点击「返回服务器」回到列表。每张卡片保留终端、复制 SSH，以及 **⋯** 操作菜单。
-复制的 SSH 命令适用于 PowerShell，沿用配置的 SSH 程序、配置文件、端口、私钥和
-解析后的指纹校验选项。底部固定显示刷新状态、立即刷新、设置和语言切换。
+Terminal, Copy SSH and the **⋯** menu (Edit, First connection, Job history, Remove)
+belong to the selected server in the detail header. The copied SSH command is
+for PowerShell and preserves the configured SSH executable, config file, port,
+identity and resolved host-verification options. Add / import controls remain
+in the sidebar; Refresh, Settings and language controls stay in the fixed footer.
+
+左侧固定显示整体概况与服务器列表，右侧显示当前所选服务器的详情。概况统计与
+Mac 原版一致：训练中的 GPU 服务器、使用中的 GPU，以及在线服务器。纯 CPU 主机
+计入在线数；忙碌统计遵循设置中的利用率 / 显存阈值，暂停的主机和离线的 GPU 容量
+不计入对应汇总。
+
+点击左侧服务器，右侧「总览」显示 GPU 横条、运行任务和系统资源；展开任务可查看
+完整命令、目录、PID、开始时间、CPU / 内存，并分别复制命令、目录和 PID。自动刷新
+保留服务器选择、当前标签页与任务展开状态，进程列表可单独展开。「任务记录」查看
+运行记录及起止时间，「历史」查看资源曲线；查看这些页面时仍可直接从左侧切换服务器。
+
+右侧标题栏提供所选服务器的终端、复制 SSH，以及 **⋯** 操作菜单。复制的 SSH 命令
+适用于 PowerShell，沿用配置的 SSH 程序、配置文件、端口、私钥和解析后的指纹校验
+选项。添加与导入入口位于左栏，底部固定显示刷新状态、立即刷新、设置和语言切换。
 
 Settings are grouped into Monitoring, SSH connection and iPhone notifications.
 This Windows client always uses the light palette. Older settings containing a
