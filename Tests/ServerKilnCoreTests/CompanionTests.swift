@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import ServerKilnCore
 import ServerKilnSSH
@@ -43,6 +44,25 @@ final class KeyImportTests: XCTestCase {
         let (priv, pub) = try keygen(["-t", "ecdsa", "-b", "256", "-m", "PEM"])
         XCTAssertTrue(priv.contains("BEGIN EC PRIVATE KEY"))
         XCTAssertEqual(try SSHKeyImport.parse(priv).openSSHPublicKey, publicPart(pub))
+    }
+
+    /// macOS's ssh-keygen (LibreSSL) drops the scalar's leading zero bytes in
+    /// about 1 of 256 PEM keys, and in about half of P-521 ones.
+    func testSEC1ScalarWithoutLeadingZeros() throws {
+        func pem(_ scalar: Data) -> String {
+            let d = Array(scalar.drop { $0 == 0 })
+            let der: [UInt8] = [0x30, UInt8(5 + d.count), 0x02, 0x01, 0x01, 0x04, UInt8(d.count)] + d
+            let label = "EC PRIVATE KEY"
+            return "-----BEGIN \(label)-----\n\(Data(der).base64EncodedString())\n-----END \(label)-----\n"
+        }
+        var p256 = P256.Signing.PrivateKey()
+        while p256.rawRepresentation.first != 0 { p256 = P256.Signing.PrivateKey() }
+        guard case .p256(let back256) = try SSHKeyImport.parse(pem(p256.rawRepresentation)) else { return XCTFail("not P-256") }
+        XCTAssertEqual(back256.rawRepresentation, p256.rawRepresentation)
+        var p521 = P521.Signing.PrivateKey()
+        while p521.rawRepresentation.first != 0 { p521 = P521.Signing.PrivateKey() }
+        guard case .p521(let back521) = try SSHKeyImport.parse(pem(p521.rawRepresentation)) else { return XCTFail("not P-521") }
+        XCTAssertEqual(back521.rawRepresentation, p521.rawRepresentation)
     }
 
     func testRSAAndEncryptedKeysAreExplained() throws {

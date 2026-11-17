@@ -111,11 +111,13 @@ public enum SSHKeyImport {
             let der = try base64Body(trimmed)
             // SEC1 with explicit curve parameters (what `ssh-keygen -m PEM`
             // writes), which CryptoKit refuses: take the scalar directly.
-            if trimmed.contains("BEGIN EC PRIVATE KEY"), let d = sec1Scalar(Array(der)) {
+            // LibreSSL (macOS's ssh-keygen) drops its leading zero bytes, so
+            // pick the curve by the longest scalar it can hold and pad.
+            if trimmed.contains("BEGIN EC PRIVATE KEY"), let d = sec1Scalar(Array(der)), !d.isEmpty {
                 switch d.count {
-                case 32: return .p256(try .init(rawRepresentation: d))
-                case 48: return .p384(try .init(rawRepresentation: d))
-                case 66: return .p521(try .init(rawRepresentation: d))
+                case ...32: return .p256(try .init(rawRepresentation: fixed(d, 32)))
+                case ...48: return .p384(try .init(rawRepresentation: fixed(d, 48)))
+                case ...66: return .p521(try .init(rawRepresentation: fixed(d, 66)))
                 default: break
                 }
             }
