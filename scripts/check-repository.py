@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import traceback
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,4 +34,12 @@ def main():
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    for stream in (sys.stdout, sys.stderr):
+        stream.reconfigure(encoding='utf-8', errors='replace')
+    try:
+        sys.exit(main())
+    except Exception:
+        trace = traceback.format_exc()
+        annotate(trace)
+        print(trace, file=sys.stderr)
+        sys.exit(1)
