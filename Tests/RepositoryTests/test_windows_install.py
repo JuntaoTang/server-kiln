@@ -23,14 +23,19 @@ class WindowsInstallTests(unittest.TestCase):
             user_data.mkdir()
             sentinel = user_data / 'settings.json'
             sentinel.write_text('{"synthetic": true}', encoding='utf-8')
-            (source / 'ServerKiln.exe').write_bytes(b'fixture version 1')
+            system = Path(os.environ['WINDIR']) / 'System32'
+            shutil.copy2(system / 'where.exe', source / 'ServerKiln.exe')
+            version_one = (source / 'ServerKiln.exe').read_bytes()
             (source / 'runtime').mkdir()
             (source / 'runtime/library.dll').write_bytes(b'fixture dependency')
             command = ['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(SCRIPT),
                        '-SourceDirectory', str(source), '-InstallDirectory', str(program),
                        '-DesktopDirectory', str(desktop), '-StartMenuDirectory', str(menu)]
-            subprocess.run(command, check=True, capture_output=True)
-            self.assertEqual((program / 'ServerKiln.exe').read_bytes(), b'fixture version 1')
+            def install():
+                result = subprocess.run(command, capture_output=True)
+                self.assertEqual(result.returncode, 0, (result.stdout + result.stderr).decode('utf-8', errors='replace'))
+            install()
+            self.assertEqual((program / 'ServerKiln.exe').read_bytes(), version_one)
             self.assertTrue((program / 'runtime/library.dll').exists())
             for folder in (desktop, menu):
                 link = folder / 'ServerKiln.lnk'
@@ -44,9 +49,11 @@ class WindowsInstallTests(unittest.TestCase):
                 properties = json.loads(result.stdout)
                 self.assertEqual(os.path.normcase(properties['target']), os.path.normcase(str(program / 'ServerKiln.exe')))
                 self.assertEqual(properties['arguments'], '')
-            (source / 'ServerKiln.exe').write_bytes(b'fixture version 2')
-            subprocess.run(command, check=True, capture_output=True)
-            self.assertEqual((program / 'ServerKiln.exe').read_bytes(), b'fixture version 2')
+            shutil.copy2(system / 'hostname.exe', source / 'ServerKiln.exe')
+            version_two = (source / 'ServerKiln.exe').read_bytes()
+            self.assertNotEqual(version_one, version_two)
+            install()
+            self.assertEqual((program / 'ServerKiln.exe').read_bytes(), version_two)
             self.assertEqual(sentinel.read_text(encoding='utf-8'), '{"synthetic": true}')
             self.assertTrue(program.resolve().is_relative_to(root))
             shutil.rmtree(program)
