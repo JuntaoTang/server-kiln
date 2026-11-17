@@ -3,6 +3,7 @@ using System.Net;
 using System.Text.Json;
 using ServerKiln.Windows.Core;
 
+if (args.Contains("-G")) { Console.WriteLine("userknownhostsfile C:/synthetic/known_hosts"); return 0; }
 if (args.Contains("-T")) return await FakeSsh.RunAsync(args);
 return await TestSuite.RunAsync();
 
@@ -42,6 +43,8 @@ internal static class TestSuite
             ("OpenSSH import: quotes, includes, CRLF and cycles", Import),
             ("SSH argument boundaries and strict host checking", Arguments),
             ("private-key override and interactive trust-store parity", IdentityArguments),
+            ("custom known-hosts paths and discard-only fallback", TrustStoreCompatibility),
+            ("live history cadence, GPU grouping and bounded retention", LiveHistory),
             ("host verification and private-key errors are distinguished", Diagnostics),
             ("repeated shortcut activation and absent-instance timeout", ShortcutActivation),
             ("native Windows OpenSSH accepts the generated configuration", NativeOpenSsh),
@@ -199,6 +202,46 @@ internal static class TestSuite
         Check.True(!interactive.ArgumentList.Contains(SshSession.CollectorCommand));
         Check.Equal(server.Target, interactive.ArgumentList[^1]);
         Check.Throws<FileNotFoundException>(() => SshSession.CreateStartInfo(server with { IdentityFile = scratch.File("missing.pem") }, Environment.ProcessPath));
+        return Task.CompletedTask;
+    }
+    private static async Task TrustStoreCompatibility()
+    {
+        foreach (var paths in new[] { "/dev/null", "none", "NUL", "/dev/null NUL" })
+            Check.True(SshTrustStore.NeedsPersistentFallback("userknownhostsfile " + paths));
+        foreach (var paths in new[] { "C:/keys/known_hosts", "C:/with spaces/known_hosts C:/pins/host_ca", "~/.ssh/known_hosts ~/.ssh/known_hosts2", "/dev/null C:/pins/hosts" })
+            Check.True(!SshTrustStore.NeedsPersistentFallback("userknownhostsfile " + paths), paths);
+        Check.Throws<IOException>(() => SshTrustStore.NeedsPersistentFallback("invalid configuration output"));
+        using var scratch = new Scratch();
+        var config = scratch.File("config");
+        var custom = scratch.File("CA pins with spaces").Replace('\\', '/');
+        File.WriteAllText(config, "Host fixture-native\n HostName gpu.example.com\n UserKnownHostsFile \"" + custom + "\"\n");
+        var native = await SshSession.CreatePreparedStartInfoAsync(Server("fixture-native"), configPath: config);
+        Check.True(!native.ArgumentList.Any(a => a.StartsWith("UserKnownHostsFile=", StringComparison.Ordinal)));
+        File.WriteAllText(config, "Host fixture-native\n HostName gpu.example.com\n UserKnownHostsFile /dev/null\n");
+        var fallback = scratch.File("persistent/known_hosts");
+        native = await SshSession.CreatePreparedStartInfoAsync(Server("fixture-native"), configPath: config, fallbackKnownHostsPath: fallback);
+        Check.True(native.ArgumentList.Any(a => a.StartsWith("UserKnownHostsFile=", StringComparison.Ordinal) && a.Contains(fallback.Replace('\\', '/'), StringComparison.Ordinal)));
+        var interactive = await SshSession.CreatePreparedStartInfoAsync(Server("fixture-native"), configPath: config, interactive: true, fallbackKnownHostsPath: fallback);
+        Check.Equal(native.ArgumentList.Single(a => a.StartsWith("UserKnownHostsFile=", StringComparison.Ordinal)),
+            interactive.ArgumentList.Single(a => a.StartsWith("UserKnownHostsFile=", StringComparison.Ordinal)));
+    }
+    private static Task LiveHistory()
+    {
+        var samples = new RecentSamples(); var id = Guid.NewGuid(); var now = DateTimeOffset.UtcNow;
+        for (var n = 0; n <= 700; n++) samples.Record(id, Snapshot(), now.AddSeconds(n));
+        var aggregate = samples.Query(id, now);
+        Check.Equal(121, aggregate.Length);
+        Check.Equal(now.AddSeconds(100), aggregate.First().Time);
+        Check.Near(0.25, aggregate.First().MemoryFraction); Check.Near(50, aggregate.First().Utilization);
+        var byGpu = samples.Query(id, now, true);
+        Check.Equal(242, byGpu.Length); Check.True(byGpu.Select(p => p.Gpu).Distinct().Order().SequenceEqual(new int?[] { 0, 1 }));
+        samples.Record(id, Snapshot(), now.AddSeconds(650));
+        Check.Equal(1, samples.Query(id, now).Length);
+        samples.Forget(id); Check.Equal(0, samples.Query(id, now).Length);
+        samples.Record(id, Snapshot() with { HasNvidiaSmi = false, Gpus = [] }, now);
+        Check.Equal(0, samples.Query(id, now, true).Length); Check.Near(0.5, samples.Query(id, now).Single().Cpu);
+        Check.Equal(600.0, HistoryRange.TenMinutes.Duration().TotalSeconds);
+        Check.True(Enum.GetValues<HistoryRange>().Select(r => r.BucketSeconds()).SequenceEqual([5, 300, 1800, 10800]));
         return Task.CompletedTask;
     }
     private static Task Diagnostics()

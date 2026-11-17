@@ -11,6 +11,7 @@ public partial class App : System.Windows.Application
     public AppPreferences Preferences { get; private set; } = new();
     public FleetViewModel ViewModel { get; } = new();
     public HistoryStore History { get; private set; } = null!;
+    public RecentSamples Recent => monitor.Recent;
     public bool Demo { get; private set; }
     public bool Exiting { get; private set; }
     private PreferencesStore store = null!;
@@ -32,9 +33,18 @@ public partial class App : System.Windows.Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        if (e.Args.Contains("--probe"))
+        {
+            Dispatcher.BeginInvoke(new Action(async () =>
+            {
+                try { Shutdown(await Probe.RunAsync(e.Args)); }
+                catch (Exception) { Console.Error.WriteLine("Probe setup failed; check local settings."); Shutdown(2); }
+            }));
+            return;
+        }
         try
         {
-            Demo = e.Args.Contains("--demo") || e.Args.Contains("--smoke-test");
+            Demo = e.Args.Contains("--demo") || e.Args.Contains("--smoke-test") || e.Args.Contains("--snapshot");
             storageDirectory = Demo ? Path.Combine(Path.GetTempPath(), "ServerKiln-demo-" + Guid.NewGuid().ToString("N")) : PreferencesStore.DefaultDirectory;
             var mutexId = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(storageDirectory)))[..16];
             activationPipe = "ServerKiln.Windows." + mutexId + "." + System.Diagnostics.Process.GetCurrentProcess().SessionId;
@@ -70,10 +80,20 @@ public partial class App : System.Windows.Application
             if (Demo)
             {
                 DemoData.Populate(this);
-                if (e.Args.Contains("--smoke-test"))
+                if (e.Args.Contains("--smoke-test") || e.Args.Contains("--snapshot"))
                     Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(async () =>
                     {
-                        try { await ((MainWindow)MainWindow).RunSmokeChecksAsync(); await RequestExitAsync(); }
+                        try
+                        {
+                            var snapshotIndex = Array.IndexOf(e.Args, "--snapshot");
+                            if (snapshotIndex >= 0)
+                            {
+                                if (snapshotIndex + 1 >= e.Args.Length) throw new ArgumentException("--snapshot needs an output directory.");
+                                await ((MainWindow)MainWindow).CaptureSnapshotsAsync(e.Args[snapshotIndex + 1]);
+                            }
+                            else await ((MainWindow)MainWindow).RunSmokeChecksAsync();
+                            await RequestExitAsync();
+                        }
                         catch (Exception ex) { Console.Error.WriteLine(ex); Exiting = true; Shutdown(1); }
                     }));
             }

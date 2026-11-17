@@ -29,9 +29,22 @@ internal static class DemoData
             for (var n = 0; n < 288; n++)
             {
                 var time = now.AddMinutes(-5 * (288 - n));
-                var gpus = snapshot.Gpus.Select(g => g with { Utilization = i == 0 ? Math.Clamp(65 + 28 * Math.Sin(n / 11.0), 0, 100) : n < 180 ? 70 : 0,
-                    MemoryUsedMiB = i == 0 ? 16000 + 5000 * Math.Sin(n / 17.0) : n < 180 ? 42000 : 12 }).ToArray();
+                var gpus = snapshot.Gpus.Select(g => g with { Utilization = i == 0 ? Math.Clamp(65 + 28 * Math.Sin(n / 11.0 + g.Index * 0.9), 0, 100) : n < 180 ? 70 : 0,
+                    MemoryUsedMiB = i == 0 ? 16000 + 5000 * Math.Sin(n / 17.0 + g.Index * 0.7) : n < 180 ? 42000 : 12 }).ToArray();
                 app.History.Record(server.Id, snapshot with { Gpus = gpus, System = snapshot.System with { CpuUsage = 0.3 + 0.22 * Math.Sin(n / 13.0), MemAvailableKB = 170000000 + 30000000 * Math.Cos(n / 23.0) } }, time);
+            }
+            for (var n = 0; n <= 120; n++)
+            {
+                var time = now.AddSeconds(-600 + n * 5);
+                app.Recent.Record(server.Id, snapshot with
+                {
+                    Gpus = snapshot.Gpus.Select(g => g with
+                    {
+                        Utilization = i == 0 ? 62 + 30 * Math.Sin(n / 13.0 + g.Index) : 0,
+                        MemoryUsedMiB = i == 0 ? 16500 + 4500 * Math.Sin(n / 18.0 + g.Index) : 12
+                    }).ToArray(),
+                    System = snapshot.System with { CpuUsage = 0.4 + 0.2 * Math.Sin(n / 17.0) }
+                }, time);
             }
         }
     }

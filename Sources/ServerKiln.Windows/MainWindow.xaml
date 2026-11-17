@@ -141,15 +141,28 @@
        </ScrollViewer>
       </TabItem>
       <TabItem Header="{Binding [History], Source={x:Static local:Localizer.Current}}" x:Name="HistoryTab">
-       <Grid Margin="18"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
-         <Button Content="{Binding [24h], Source={x:Static local:Localizer.Current}}" Tag="1" Click="ChangeHistoryRange" Margin="0,0,7,0" />
-         <Button Content="{Binding [7d], Source={x:Static local:Localizer.Current}}" Tag="7" Click="ChangeHistoryRange" Margin="0,0,7,0" />
-         <Button Content="{Binding [30d], Source={x:Static local:Localizer.Current}}" Tag="30" Click="ChangeHistoryRange" />
+       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+       <Grid Margin="18" MinHeight="350"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <StackPanel Margin="0,0,0,12">
+         <WrapPanel Margin="0,0,0,8">
+          <Button x:Name="RangeLive" Content="{Binding [10m], Source={x:Static local:Localizer.Current}}" Tag="TenMinutes" Click="ChangeHistoryRange" Margin="0,0,7,0" />
+          <Button x:Name="RangeDay" Content="{Binding [24h], Source={x:Static local:Localizer.Current}}" Tag="Day" Click="ChangeHistoryRange" Margin="0,0,7,0" />
+          <Button x:Name="RangeWeek" Content="{Binding [7d], Source={x:Static local:Localizer.Current}}" Tag="Week" Click="ChangeHistoryRange" Margin="0,0,7,0" />
+          <Button x:Name="RangeMonth" Content="{Binding [30d], Source={x:Static local:Localizer.Current}}" Tag="Month" Click="ChangeHistoryRange" />
+         </WrapPanel>
+         <WrapPanel>
+          <Button x:Name="ModeOverall" Content="{Binding [Overall], Source={x:Static local:Localizer.Current}}" Tag="False" Click="ChangeHistoryMode" Padding="12,5" Margin="0,0,7,0" />
+          <Button x:Name="ModePerGpu" Content="{Binding [PerGpu], Source={x:Static local:Localizer.Current}}" Tag="True" Click="ChangeHistoryMode" Padding="12,5" Margin="0,0,20,0" />
+          <StackPanel x:Name="GpuMetricPicker" Orientation="Horizontal" Visibility="Collapsed">
+           <Button x:Name="MetricUtilization" Content="{Binding [GpuUse], Source={x:Static local:Localizer.Current}}" Tag="Utilization" Click="ChangeHistoryMetric" Padding="12,5" Margin="0,0,7,0" />
+           <Button x:Name="MetricMemory" Content="{Binding [Vram], Source={x:Static local:Localizer.Current}}" Tag="Memory" Click="ChangeHistoryMetric" Padding="12,5" />
+          </StackPanel>
+         </WrapPanel>
         </StackPanel>
         <local:HistoryChart x:Name="Chart" Grid.Row="1" MinHeight="190" />
-        <TextBlock Grid.Row="2" Text="{Binding [ChartLegend], Source={x:Static local:Localizer.Current}}" Foreground="{DynamicResource MutedBrush}" Margin="0,16,0,0" TextWrapping="Wrap" />
+        <TextBlock x:Name="HistoryHint" Grid.Row="2" Foreground="{DynamicResource MutedBrush}" Margin="0,12,0,0" TextWrapping="Wrap" />
        </Grid>
+       </ScrollViewer>
       </TabItem>
      </TabControl>
     </Grid>

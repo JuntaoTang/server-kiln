@@ -1,13 +1,16 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using Microsoft.Win32;
+using System.Windows.Media.Imaging;
 
 namespace ServerKiln.Windows;
 
 public partial class MainWindow : Window
 {
     private App AppState => App.Instance;
-    private int historyDays = 1;
+    private HistoryRange historyRange = HistoryRange.Day;
+    private bool historyPerGpu;
+    private GpuHistoryMetric historyMetric;
     private DateTimeOffset historyUpdated;
     private Guid? historyServer;
 
@@ -95,35 +98,91 @@ public partial class MainWindow : Window
         try { if (ProcessGrid.SelectedItem is ProcessViewModel process) Clipboard.SetText(process.Command); }
         catch (Exception ex) { AppState.ShowError(ex); }
     }
-    private void OpenTerminal(object sender, RoutedEventArgs e)
+    private async void OpenTerminal(object sender, RoutedEventArgs e)
     {
         if (AppState.Demo) return;
         if (AppState.ViewModel.SelectedServer?.Config is not { } server) return;
         try
         {
-            var info = SshSession.CreateInteractiveStartInfo(server, AppState.Preferences.SshExecutable, AppState.Preferences.SshConfigPath);
+            var info = await SshSession.CreatePreparedStartInfoAsync(server, AppState.Preferences.SshExecutable,
+                AppState.Preferences.SshConfigPath, interactive: true);
             Process.Start(info)?.Dispose();
         }
         catch (Exception ex) { AppState.ShowError(ex); }
     }
 
     private void ChangeHistoryRange(object sender, RoutedEventArgs e)
-    { historyDays = int.Parse((string)((Button)sender).Tag); RefreshHistoryIfVisible(force: true); }
+    { historyRange = Enum.Parse<HistoryRange>((string)((Button)sender).Tag); RefreshHistoryIfVisible(force: true); }
+    private void ChangeHistoryMode(object sender, RoutedEventArgs e)
+    { historyPerGpu = bool.Parse((string)((Button)sender).Tag); RefreshHistoryIfVisible(force: true); }
+    private void ChangeHistoryMetric(object sender, RoutedEventArgs e)
+    { historyMetric = Enum.Parse<GpuHistoryMetric>((string)((Button)sender).Tag); RefreshHistoryIfVisible(force: true); }
     private void TabChanged(object sender, SelectionChangedEventArgs e)
     { if (e.Source == DetailTabs && IsInitialized) RefreshHistoryIfVisible(force: true); }
     public void RefreshHistoryIfVisible(bool force = false)
     {
         if (Chart is null || HistoryTab is null || !HistoryTab.IsSelected || AppState.ViewModel.SelectedServer is not { } selected) return;
         var now = DateTimeOffset.UtcNow;
-        if (!force && historyServer == selected.Config.Id && now - historyUpdated < TimeSpan.FromSeconds(30)) { Chart.InvalidateVisual(); return; }
+        var refreshSeconds = historyRange == HistoryRange.TenMinutes ? 3 : 30;
+        UpdateHistoryControls();
+        if (!force && historyServer == selected.Config.Id && now - historyUpdated < TimeSpan.FromSeconds(refreshSeconds)) { Chart.InvalidateVisual(); return; }
         try
         {
-            var since = now.AddDays(-historyDays);
-            var bucket = historyDays == 1 ? 60 : historyDays == 7 ? 600 : 3600;
-            Chart.SetPoints(AppState.History.Query(selected.Config.Id, since, bucket), since, now);
+            var since = now - historyRange.Duration();
+            var points = historyRange == HistoryRange.TenMinutes
+                ? AppState.Recent.Query(selected.Config.Id, since, historyPerGpu)
+                : AppState.History.Query(selected.Config.Id, since, historyRange.BucketSeconds(), historyPerGpu);
+            Chart.SetPoints(points, since, now, historyRange.BucketSeconds(), historyPerGpu, historyMetric);
             historyUpdated = now; historyServer = selected.Config.Id;
         }
         catch (Exception ex) { AppState.ViewModel.StatusMessage = ex.Message; }
+    }
+
+    private void UpdateHistoryControls()
+    {
+        void Select(Button button, bool selected) => button.SetResourceReference(Control.BorderBrushProperty, selected ? "AccentBrush" : "BorderBrush");
+        foreach (var button in new[] { RangeLive, RangeDay, RangeWeek, RangeMonth })
+            Select(button, (string)button.Tag == historyRange.ToString());
+        Select(ModeOverall, !historyPerGpu); Select(ModePerGpu, historyPerGpu);
+        Select(MetricUtilization, historyMetric == GpuHistoryMetric.Utilization); Select(MetricMemory, historyMetric == GpuHistoryMetric.Memory);
+        GpuMetricPicker.Visibility = historyPerGpu ? Visibility.Visible : Visibility.Collapsed;
+        HistoryHint.Text = Localizer.Current[historyRange == HistoryRange.TenMinutes ? "LiveHistoryHint" : "StoredHistoryHint"];
+    }
+
+    public async Task CaptureSnapshotsAsync(string directory)
+    {
+        if (!AppState.Demo) throw new InvalidOperationException("Snapshots require isolated demo data.");
+        Directory.CreateDirectory(directory);
+        Width = 1220; Height = 830; WindowState = WindowState.Normal;
+        AppState.ViewModel.SelectedServer = AppState.ViewModel.Servers.First();
+        AppState.SavePreferences(AppState.Preferences with { Theme = "dark" });
+        DetailTabs.SelectedIndex = 0;
+        await SaveSnapshotAsync(Path.Combine(directory, "overview-dark.png"));
+        DetailTabs.SelectedItem = HistoryTab; historyRange = HistoryRange.Day; historyPerGpu = true; historyMetric = GpuHistoryMetric.Utilization;
+        RefreshHistoryIfVisible(force: true);
+        await SaveSnapshotAsync(Path.Combine(directory, "history-per-gpu-dark.png"));
+        AppState.SavePreferences(AppState.Preferences with { Theme = "light" });
+        historyRange = HistoryRange.TenMinutes; historyMetric = GpuHistoryMetric.Memory;
+        RefreshHistoryIfVisible(force: true);
+        await SaveSnapshotAsync(Path.Combine(directory, "history-live-light.png"));
+    }
+
+    private async Task SaveSnapshotAsync(string path)
+    {
+        UpdateLayout();
+        await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+        var root = (FrameworkElement)Content;
+        var visual = new DrawingVisual();
+        using (var context = visual.RenderOpen())
+        {
+            var bounds = new Rect(0, 0, root.ActualWidth + root.Margin.Left + root.Margin.Right, root.ActualHeight + root.Margin.Top + root.Margin.Bottom);
+            context.DrawRectangle(Background, null, bounds);
+            context.DrawRectangle(new VisualBrush(root), null, new Rect(root.Margin.Left, root.Margin.Top, root.ActualWidth, root.ActualHeight));
+        }
+        var image = new RenderTargetBitmap((int)Math.Ceiling(ActualWidth), (int)Math.Ceiling(ActualHeight - 40), 96, 96, PixelFormats.Pbgra32);
+        image.Render(visual);
+        var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(image));
+        using var file = File.Create(path); encoder.Save(file);
     }
 
     public async Task RunSmokeChecksAsync()
@@ -137,7 +196,14 @@ public partial class MainWindow : Window
                 {
                     AppState.ViewModel.SelectedServer = server;
                     DetailTabs.SelectedIndex = 0; UpdateLayout();
-                    DetailTabs.SelectedItem = HistoryTab; RefreshHistoryIfVisible(force: true); UpdateLayout();
+                    DetailTabs.SelectedItem = HistoryTab;
+                    foreach (var range in Enum.GetValues<HistoryRange>())
+                        foreach (var perGpu in new[] { false, true })
+                            foreach (var metric in Enum.GetValues<GpuHistoryMetric>())
+                            {
+                                historyRange = range; historyPerGpu = perGpu; historyMetric = metric;
+                                RefreshHistoryIfVisible(force: true); UpdateLayout();
+                            }
                 }
                 var settings = new SettingsWindow { Owner = this }; settings.Show(); settings.UpdateLayout(); settings.Close();
                 var editor = new ServerEditor(null) { Owner = this }; editor.Show(); editor.UpdateLayout(); editor.Close();

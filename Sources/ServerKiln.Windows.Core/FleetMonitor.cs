@@ -16,6 +16,7 @@ public sealed class FleetMonitor : IAsyncDisposable
     private bool disposed;
     public event Action<ServerReading>? ReadingChanged;
     public event Action<ServerConfig, ActivityTransition>? TransitionDetected;
+    public RecentSamples Recent { get; } = new();
 
     public FleetMonitor(AppPreferences preferences, HistoryStore history,
         Func<ServerConfig, AppPreferences, ICollectorSession>? createSession = null)
@@ -60,7 +61,7 @@ public sealed class FleetMonitor : IAsyncDisposable
                         readings[id] = new ServerReading(changed);
                 }
             foreach (var id in readings.Keys.Where(id => !settings.Servers.Any(s => s.Id == id)).ToArray())
-            { readings.TryRemove(id, out _); tasks.TryRemove(id, out _); transitions.TryRemove(id, out _); }
+            { readings.TryRemove(id, out _); tasks.TryRemove(id, out _); transitions.TryRemove(id, out _); Recent.Forget(id); }
             using var concurrency = new SemaphoreSlim(4, 4);
             await Task.WhenAll(settings.Servers.Where(s => s.Enabled).Select(async server =>
             {
@@ -107,6 +108,7 @@ public sealed class FleetMonitor : IAsyncDisposable
         if (reading.Failures == 0 && reading.Snapshot is { } current)
         {
             history.Record(server.Id, current, current.FetchedAt);
+            Recent.Record(server.Id, current, current.FetchedAt);
             var tracker = tasks.GetOrAdd(server.Id, id => history.LoadTasks(id));
             tracker.Observe(current.Tasks, current.FetchedAt);
             history.SaveTasks(server.Id, tracker);

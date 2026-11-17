@@ -71,12 +71,12 @@ public sealed class SshSession(ServerConfig server, string? executable = null, s
             if (!File.Exists(full)) throw new FileNotFoundException("SSH configuration not found. / 找不到 SSH 配置文件。", full);
             info.ArgumentList.Add("-F"); info.ArgumentList.Add(full);
         }
-        // Use the same persistent trust store in interactive setup and monitoring. Inherited
-        // UserKnownHostsFile=/dev/null would otherwise make strict verification fail forever.
-        // Also honor host keys already verified in the standard Windows OpenSSH store.
-        var ownedStore = QuoteConfigPath(Path.GetFullPath(knownHostsPath ?? DefaultKnownHostsPath));
-        var userStore = QuoteConfigPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".ssh", "known_hosts"));
-        info.ArgumentList.Add("-o"); info.ArgumentList.Add($"UserKnownHostsFile={ownedStore} {userStore}");
+        if (knownHostsPath is not null)
+        {
+            var ownedStore = QuoteConfigPath(Path.GetFullPath(knownHostsPath));
+            var userStore = QuoteConfigPath(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".ssh", "known_hosts"));
+            info.ArgumentList.Add("-o"); info.ArgumentList.Add($"UserKnownHostsFile={ownedStore} {userStore}");
+        }
         if (!interactive) info.ArgumentList.Add("-T");
         foreach (var argument in new[] { "-o", interactive ? "BatchMode=no" : "BatchMode=yes", "-o", interactive ? "StrictHostKeyChecking=ask" : "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=8",
             "-o", "ClearAllForwardings=yes", "-o", "ForwardAgent=no", "-o", "ForwardX11=no", "-o", "Compression=yes",
@@ -101,13 +101,44 @@ public sealed class SshSession(ServerConfig server, string? executable = null, s
         return "\"" + path.Replace('\\', '/') + "\"";
     }
 
+    public static async Task<ProcessStartInfo> CreatePreparedStartInfoAsync(ServerConfig server, string? executable = null,
+        string? configPath = null, bool interactive = false, string? fallbackKnownHostsPath = null, CancellationToken cancellationToken = default)
+    {
+        // -G resolves Include/Match, aliases, ports and user configuration without an SSH connection.
+        var query = CreateStartInfo(server, executable, configPath);
+        query.ArgumentList.RemoveAt(query.ArgumentList.Count - 1);
+        query.ArgumentList.Insert(0, "-G");
+        using var process = new Process { StartInfo = query };
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(5));
+        try
+        {
+            if (!process.Start()) throw new IOException("Could not resolve SSH configuration.");
+            process.StandardInput.Close();
+            var output = process.StandardOutput.ReadToEndAsync(timeout.Token);
+            var errors = process.StandardError.ReadToEndAsync(timeout.Token);
+            await Task.WhenAll(process.WaitForExitAsync(timeout.Token), output, errors).ConfigureAwait(false);
+            if (process.ExitCode != 0) throw new IOException("SSH configuration error: " + (await errors.ConfigureAwait(false)).Trim());
+            var store = SshTrustStore.NeedsPersistentFallback(await output.ConfigureAwait(false)) ? fallbackKnownHostsPath ?? DefaultKnownHostsPath : null;
+            if (store is not null) Directory.CreateDirectory(Path.GetDirectoryName(store)!);
+            return CreateConnectionInfo(server, executable, configPath, store, interactive);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        { throw new TimeoutException("SSH configuration resolution timed out. / SSH 配置解析超时。"); }
+        finally
+        {
+            try { if (!process.HasExited) { process.Kill(entireProcessTree: true); await process.WaitForExitAsync().ConfigureAwait(false); } }
+            catch (InvalidOperationException) { }
+        }
+    }
+
     public async Task<ServerSnapshot> FetchAsync(CancellationToken cancellationToken = default)
     {
         await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             ObjectDisposedException.ThrowIf(disposed, this);
-            if (process is null || process.HasExited) { await CloseProcessAsync().ConfigureAwait(false); Start(); }
+            if (process is null || process.HasExited) { await CloseProcessAsync().ConfigureAwait(false); await StartAsync(cancellationToken).ConfigureAwait(false); }
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             timeout.CancelAfter(requestTimeout ?? TimeSpan.FromSeconds(20));
             try
@@ -161,10 +192,12 @@ public sealed class SshSession(ServerConfig server, string? executable = null, s
         return true;
     }
 
-    private void Start()
+    private async Task StartAsync(CancellationToken cancellationToken)
     {
         lock (stderr) stderr.Clear();
-        process = new Process { StartInfo = CreateStartInfo(server, executable, configPath, knownHostsPath) };
+        var startInfo = knownHostsPath is not null ? CreateStartInfo(server, executable, configPath, knownHostsPath)
+            : await CreatePreparedStartInfoAsync(server, executable, configPath, cancellationToken: cancellationToken).ConfigureAwait(false);
+        process = new Process { StartInfo = startInfo };
         if (!process.Start()) throw new IOException("Could not start SSH.");
         process.StandardInput.NewLine = "\n";
         var reader = process.StandardError;
