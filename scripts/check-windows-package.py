@@ -22,7 +22,10 @@ def verify(directory, version):
     if len(checksum) != 2 or checksum[1] != archive.name:
         raise ValueError('Checksum manifest must name exactly this archive')
     with archive.open('rb') as stream:
-        actual = hashlib.file_digest(stream, 'sha256').hexdigest()
+        digest = hashlib.sha256()
+        for block in iter(lambda: stream.read(1024 * 1024), b''):
+            digest.update(block)
+        actual = digest.hexdigest()
     if actual != checksum[0]:
         raise ValueError('Windows ZIP checksum mismatch')
     with zipfile.ZipFile(archive) as package:
