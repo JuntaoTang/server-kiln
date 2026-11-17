@@ -27,7 +27,7 @@ jobs:
           python3 scripts/check-public-tree.py --history
           python3 scripts/check-docs.py
           python3 -m unittest discover -s Tests/RepositoryTests
-          swift test --force-resolved-versions
+          python3 scripts/test-swift.py
   windows:
     runs-on: windows-latest
     timeout-minutes: 25

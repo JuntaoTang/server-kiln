@@ -28,7 +28,7 @@ jobs:
           brew install gitleaks
           gitleaks git --redact --no-banner --log-opts=--all
       - name: Test
-        run: swift test --force-resolved-versions
+        run: python3 scripts/test-swift.py
       - name: Build universal app with both languages
         run: scripts/build-app.sh
       - name: Verify packaged resources
