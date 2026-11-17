@@ -24,6 +24,7 @@ public sealed class HistoryChart : FrameworkElement
         base.OnRender(context);
         if (ActualWidth < 100 || ActualHeight < 100 || until <= since) return;
         var textBrush = (Brush)FindResource("MutedBrush");
+        var typeface = new Typeface((FontFamily)FindResource("UiFontFamily"), FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
         var border = new Pen((Brush)FindResource("ChartGridBrush"), 1);
         var palette = Palette;
         var series = new List<(HistoryPoint[] Points, Func<HistoryPoint, double?> Value, Color Color, string Label)>();
@@ -42,7 +43,7 @@ public sealed class HistoryChart : FrameworkElement
             series.Add((overall, p => p.Ram, palette[3], Localizer.Current["Ram"]));
         }
         void Text(string text, double x, double y, Brush? brush = null) => context.DrawText(new FormattedText(text,
-            CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface("Segoe UI"), 13,
+            CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, typeface, 13,
             brush ?? textBrush, VisualTreeHelper.GetDpi(this).PixelsPerDip), new Point(x, y));
         var legendColumns = Math.Max(1, (int)(ActualWidth - 60) / 110);
         var legendRows = Math.Max(1, (series.Count + legendColumns - 1) / legendColumns);

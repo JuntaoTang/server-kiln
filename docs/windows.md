@@ -142,11 +142,18 @@ Mac 原版一致：训练中的 GPU 服务器、使用中的 GPU，以及在线�
 选项。添加与导入入口位于左栏，底部固定显示刷新状态、立即刷新、设置和语言切换。
 
 Settings are grouped into Monitoring, SSH connection and iPhone notifications.
+Interface text uses HarmonyOS Sans SC when installed, with Windows system-font
+fallbacks. Commands and paths use Cascadia Mono / Consolas. Body text is 14 px,
+section headings are 15 px, and secondary labels are 13 px; resource values use
+tabular digits. Fonts are read from the system rather than bundled in the ZIP.
 This Windows client always uses the light palette. Older settings containing a
 dark-theme preference still load their servers and connection settings; the
 obsolete theme field is ignored.
 设置按监控、SSH 连接和 iPhone 通知分组。Windows 版固定使用浅色；升级时忽略旧版
 保存的深色选项，继续保留服务器、SSH 配置与私钥路径。
+界面优先使用本机已安装的 HarmonyOS Sans SC，缺少时自动回退到 Windows 系统字体；
+命令与路径使用 Cascadia Mono / Consolas。正文 14 号、分区标题 15 号、辅助说明 13 号，
+资源数值使用等宽数字。应用沿用本机字体，压缩包不包含字体文件。
 
 Settings are stored in `%LOCALAPPDATA%\ServerKiln\settings.json`, history and job
 metadata in `history.sqlite`. Commands, usernames and working directories are

@@ -198,7 +198,7 @@ public partial class MainWindow : Window
         {
             button.SetResourceReference(Control.BackgroundProperty, selected ? "SurfaceBrush" : "TransparentBrush");
             button.SetResourceReference(Control.ForegroundProperty, selected ? "AccentBrush" : "MutedBrush");
-            button.FontWeight = selected ? FontWeights.SemiBold : FontWeights.Normal;
+            button.FontWeight = selected ? FontWeights.Medium : FontWeights.Normal;
         }
         foreach (var button in new[] { RangeLive, RangeDay, RangeWeek, RangeMonth })
             Select(button, (string)button.Tag == historyRange.ToString());

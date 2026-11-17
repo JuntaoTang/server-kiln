@@ -6,7 +6,7 @@ namespace ServerKiln.Windows;
 internal static class DialogLayout
 {
     public static TextBlock Label(string key, double top = 13) => new()
-    { Text = Localizer.Current[key], FontSize = 13, Margin = new Thickness(0, top, 0, 7), TextWrapping = TextWrapping.Wrap };
+    { Text = Localizer.Current[key], FontSize = 14, Margin = new Thickness(0, top, 0, 7), TextWrapping = TextWrapping.Wrap };
     public static TextBox Input(StackPanel panel, string key, string value)
     {
         panel.Children.Add(Label(key));
@@ -23,20 +23,25 @@ internal static class DialogLayout
     {
         var row = new Grid();
         row.ColumnDefinitions.Add(new ColumnDefinition()); row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(20) }); row.ColumnDefinitions.Add(new ColumnDefinition());
-        var left = new StackPanel(); var right = new StackPanel(); Grid.SetColumn(right, 2);
-        row.Children.Add(left); row.Children.Add(right); panel.Children.Add(row);
-        var first = Input(left, leftKey, leftValue); var second = Input(right, rightKey, rightValue);
-        ((TextBlock)left.Children[0]).MinHeight = 32; ((TextBlock)right.Children[0]).MinHeight = 32;
+        row.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); row.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        var leftLabel = Label(leftKey); var rightLabel = Label(rightKey);
+        leftLabel.MinHeight = rightLabel.MinHeight = 32;
+        Grid.SetColumn(rightLabel, 2); row.Children.Add(leftLabel); row.Children.Add(rightLabel);
+        var first = new TextBox { Text = leftValue }; var second = new TextBox { Text = rightValue };
+        System.Windows.Automation.AutomationProperties.SetName(first, Localizer.Current[leftKey]);
+        System.Windows.Automation.AutomationProperties.SetName(second, Localizer.Current[rightKey]);
+        Grid.SetRow(first, 1); Grid.SetRow(second, 1); Grid.SetColumn(second, 2);
+        row.Children.Add(first); row.Children.Add(second); panel.Children.Add(row);
         return (first, second);
     }
     public static void Section(StackPanel panel, string key)
     {
-        var label = Label(key, 26); label.FontSize = 14; label.FontWeight = FontWeights.SemiBold;
+        var label = Label(key, 26); label.FontSize = 15; label.FontWeight = FontWeights.Medium;
         panel.Children.Add(label);
     }
     public static void Help(StackPanel panel, string key)
     {
-        var text = Label(key, 7); text.FontSize = 13; text.LineHeight = 20;
+        var text = Label(key, 7); text.FontSize = 13; text.LineHeight = 21;
         text.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); panel.Children.Add(text);
     }
     public static (StackPanel Fields, StackPanel Buttons) Build(Window window)
