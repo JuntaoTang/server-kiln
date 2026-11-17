@@ -21,10 +21,7 @@ jobs:
           persist-credentials: false
       - name: Check public boundary and documentation
         run: |
-          python3 scripts/check-public-tree.py --history
-          python3 scripts/check-docs.py
-          python3 scripts/export-windows-collector.py --check
-          python3 -m unittest discover -s Tests/RepositoryTests
+          python3 scripts/check-repository.py
           bash -n scripts/build-app.sh scripts/release-mac.sh scripts/package-release.sh scripts/publish-release.sh
       - name: Scan source and history for secrets
         run: |
@@ -54,10 +51,7 @@ jobs:
           global-json-file: global.json
       - name: Verify contracts, source boundary and documentation
         run: |
-          python scripts/export-windows-collector.py --check
-          python scripts/check-public-tree.py --history
-          python scripts/check-docs.py
-          python -m unittest discover -s Tests/RepositoryTests
+          python scripts/check-repository.py
       - name: Test and package Windows application
         shell: pwsh
         run: scripts/build-windows.ps1 -Package -Snapshots
