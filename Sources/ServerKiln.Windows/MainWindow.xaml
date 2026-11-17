@@ -4,7 +4,7 @@
  xmlns:local="clr-namespace:ServerKiln.Windows"
  xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
  Title="ServerKiln" Style="{StaticResource {x:Type Window}}" Width="1220" Height="830" MinWidth="980" MinHeight="650"
- Background="{DynamicResource SidebarBrush}" WindowStyle="None" WindowStartupLocation="CenterScreen" Icon="AppIcon.ico" Closing="WindowClosing" IsVisibleChanged="VisibilityChanged">
+ Background="{DynamicResource SurfaceBrush}" WindowStyle="None" WindowStartupLocation="CenterScreen" Icon="AppIcon.ico" Closing="WindowClosing" IsVisibleChanged="VisibilityChanged">
  <shell:WindowChrome.WindowChrome><shell:WindowChrome CaptionHeight="38" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False" /></shell:WindowChrome.WindowChrome>
  <Window.Resources>
   <Style x:Key="DisclosureToggle" TargetType="ToggleButton">
@@ -106,7 +106,8 @@
     <Button Grid.Row="3" Content="{Binding [Import], Source={x:Static local:Localizer.Current}}" Click="ImportServers" Style="{StaticResource GhostButton}" HorizontalAlignment="Left" Margin="0,12,0,0" />
    </Grid>
   </Border>
-  <Grid Grid.Row="1" Grid.Column="1" Background="{DynamicResource SurfaceBrush}" Margin="24,20,24,0">
+  <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource SurfaceBrush}" Padding="24,20,24,0">
+   <Grid>
    <StackPanel Visibility="{Binding EmptyVisibility}" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="420"><TextBlock Text="{Binding [NoServers], Source={x:Static local:Localizer.Current}}" FontSize="18" FontWeight="SemiBold" TextAlignment="Center" /><TextBlock Text="{Binding [Welcome], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" TextWrapping="Wrap" TextAlignment="Center" Margin="0,12,0,24" /><Button Content="{Binding [Add], Source={x:Static local:Localizer.Current}}" Click="AddServer" HorizontalAlignment="Center" /></StackPanel>
    <Grid x:Name="DetailView" Visibility="{Binding DetailVisibility}"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition /></Grid.RowDefinitions>
     <Grid x:Name="DetailsHeader" DataContext="{Binding SelectedServer}" Margin="0,0,0,16"><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
@@ -116,7 +117,7 @@
      </StackPanel>
     </Grid>
     <TabControl Grid.Row="1" x:Name="DetailTabs" SelectionChanged="TabChanged">
-     <TabItem x:Name="OverviewTab" Header="{Binding [Overview], Source={x:Static local:Localizer.Current}}" IsSelected="True"><ScrollViewer x:Name="DetailScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,16,8,12">
+     <TabItem x:Name="OverviewTab" Header="{Binding [Overview], Source={x:Static local:Localizer.Current}}" IsSelected="True"><ScrollViewer x:Name="DetailScroll" Background="{DynamicResource SurfaceBrush}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,16,8,12">
       <StackPanel x:Name="OverviewBody" DataContext="{Binding SelectedServer}">
        <Border Background="{DynamicResource DangerSoftBrush}" CornerRadius="4" Padding="12" Margin="0,0,0,12" Visibility="{Binding ErrorVisibility}"><StackPanel><TextBlock Text="{Binding ErrorTitle}" FontWeight="SemiBold" Foreground="{DynamicResource DangerBrush}" /><TextBlock Text="{Binding ErrorHint}" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,6,0,0" /><TextBox Text="{Binding Error, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" MaxHeight="100" VerticalScrollBarVisibility="Auto" Margin="0,8,0,8" /><Button Content="{Binding [FirstConnect], Source={x:Static local:Localizer.Current}}" Click="OpenTerminal" HorizontalAlignment="Left" /></StackPanel></Border>
        <TextBlock Text="{Binding GpuMessage}" Visibility="{Binding GpuMessageVisibility}" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,12" />
@@ -174,7 +175,8 @@
 
     </TabControl>
    </Grid>
-  </Grid>
+   </Grid>
+  </Border>
   <Border Grid.Row="2" Grid.ColumnSpan="2" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="24,8"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
    <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Ellipse Width="6" Height="6" Fill="{DynamicResource GreenBrush}" Margin="0,0,8,0" /><TextBlock Text="{Binding PollingLabel}" Style="{StaticResource Caption}" /></StackPanel>
    <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" Style="{StaticResource Caption}" Margin="16,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip="{Binding StatusMessage}" />
