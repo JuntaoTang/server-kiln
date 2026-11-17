@@ -4,6 +4,8 @@ This contribution adds an independent Windows desktop client. It keeps the
 existing Mac app, Apple signing, CloudKit integration and Mac packaging scripts.
 The Windows core is C#, rather than a Windows build of SwiftUI. Its behavioral
 contract is the shared collector, fixture corpus and documented sampling rules.
+The shared Swift parser also accepts CRLF line endings, covered by the same
+fixture corpus; the Mac UI, collector and signing configuration are unchanged.
 
 ## Feature matrix
 

@@ -9,6 +9,8 @@
 - Chinese and English UI, light/dark themes, user-level installation and login startup.
 - Shared Swift/C# parsing fixtures, collector export verification, Windows CI,
   WPF smoke tests and self-contained Windows packaging with checksums and notices.
+- CRLF normalization in the shared Swift snapshot parser, fixing empty host and
+  process results exposed by the cross-platform fixture corpus.
 - UTF-8 documentation validation and portable repository test execution on Windows.
 - First-connection fingerprint confirmation with a persistent Windows trust store,
   including configurations that discard known hosts; per-server private-key file

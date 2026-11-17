@@ -45,9 +45,11 @@ scripts/build-windows.ps1 -Package -Snapshots
 ```
 
 The GitHub CI workflow runs both the existing Mac verification job and the new
-Windows job on pushes and pull requests. The source-side signing configuration,
-Mac app and Mac release packaging scripts are unchanged. A workflow run URL and
-its results must be checked before marking remote macOS / Windows CI as passed.
+Windows job on pushes and pull requests. The Mac UI, source-side signing
+configuration and Mac release packaging scripts are unchanged. The shared Swift
+parser now normalizes CRLF before splitting lines; the shared fixture caught the
+previous empty host / process results for that input. A workflow run URL and its
+results must be checked before marking remote macOS / Windows CI as passed.
 
 ## Real-server probe
 
