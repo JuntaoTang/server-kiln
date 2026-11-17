@@ -9,8 +9,9 @@
  <Window.Resources>
   <Style x:Key="DisclosureToggle" TargetType="ToggleButton">
    <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" /><Setter Property="Cursor" Value="Hand" />
+   <Setter Property="Padding" Value="16,12" /><Setter Property="HorizontalContentAlignment" Value="Stretch" />
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ToggleButton">
-    <Border x:Name="HeaderChrome" Background="Transparent" Padding="16,12" CornerRadius="8">
+    <Border x:Name="HeaderChrome" Background="Transparent" Padding="{TemplateBinding Padding}" CornerRadius="8">
      <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="20" /></Grid.ColumnDefinitions>
       <ContentPresenter VerticalAlignment="Center" />
       <Path x:Name="Chevron" Grid.Column="1" Data="M 0,0 L 4,4 L 0,8" Stroke="{DynamicResource MutedBrush}" StrokeThickness="1.5" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5" />
@@ -37,6 +38,28 @@
   </Style>
   <Style x:Key="TaskDisclosure" TargetType="Expander" BasedOn="{StaticResource Disclosure}">
    <Setter Property="Background" Value="{DynamicResource SidebarBrush}" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Padding" Value="16,0,16,12" /><Setter Property="Margin" Value="0,0,0,6" />
+  </Style>
+  <Style x:Key="SectionDisclosure" TargetType="Expander" BasedOn="{StaticResource Disclosure}">
+   <Setter Property="Margin" Value="0,0,0,16" />
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Expander">
+    <StackPanel>
+     <ToggleButton Style="{StaticResource DisclosureToggle}" Padding="0,0,16,0" IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" Content="{TemplateBinding Header}" />
+     <ContentPresenter x:Name="Body" Visibility="Collapsed" Margin="0,8,0,0" />
+    </StackPanel>
+    <ControlTemplate.Triggers><Trigger Property="IsExpanded" Value="True"><Setter TargetName="Body" Property="Visibility" Value="Visible" /></Trigger></ControlTemplate.Triggers>
+   </ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <Style x:Key="HistoryRowButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
+   <Setter Property="Background" Value="{DynamicResource SidebarBrush}" /><Setter Property="Padding" Value="16,12" /><Setter Property="HorizontalContentAlignment" Value="Stretch" />
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+    <Border x:Name="RowChrome" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" CornerRadius="8">
+     <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="20" /></Grid.ColumnDefinitions>
+      <ContentPresenter VerticalAlignment="Center" />
+      <Path Grid.Column="1" Data="M 0,0 L 4,4 L 0,8" Stroke="{DynamicResource MutedBrush}" StrokeThickness="1.5" HorizontalAlignment="Center" VerticalAlignment="Center" />
+     </Grid>
+    </Border>
+    <ControlTemplate.Triggers><Trigger Property="IsPressed" Value="True"><Setter TargetName="RowChrome" Property="Opacity" Value="0.7" /></Trigger></ControlTemplate.Triggers>
+   </ControlTemplate></Setter.Value></Setter>
   </Style>
   <Style x:Key="ValueMeter" TargetType="ProgressBar" BasedOn="{StaticResource {x:Type ProgressBar}}">
    <Setter Property="Height" Value="28" /><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ProgressBar">
@@ -137,8 +160,15 @@
         </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
        </Grid>
        <TextBlock Text="{Binding TaskHeading}" Style="{StaticResource SectionTitle}" Margin="0,0,0,8" /><TextBlock Text="{Binding [NoRunningTasks], Source={x:Static local:Localizer.Current}}" Visibility="{Binding NoTasksVisibility}" Style="{StaticResource Caption}" Margin="0,0,0,8" /><ItemsControl ItemsSource="{Binding Tasks}" ItemTemplate="{StaticResource TaskTemplate}" />
-       <Grid Margin="0,8,0,8" Visibility="{Binding LastJobVisibility}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock Text="{Binding [LastJob], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,12,0" /><TextBlock Grid.Column="1" Text="{Binding LastJob.Command}" Style="{StaticResource CommandText}" VerticalAlignment="Center" Margin="0,0,12,0" ToolTip="{Binding LastJob.Detail}" /><Button Grid.Column="2" Content="{Binding [JobHistory], Source={x:Static local:Localizer.Current}}" Click="OpenJobs" Style="{StaticResource GhostButton}" /></Grid>
-       <Expander Style="{StaticResource TaskDisclosure}" Header="{Binding ProcessHeading}" Margin="0,0,0,12"><ItemsControl ItemsSource="{Binding Processes}" ItemTemplate="{StaticResource TaskTemplate}" /></Expander>
+       <StackPanel Margin="0,10,0,16" Visibility="{Binding LastJobVisibility}">
+        <TextBlock Text="{Binding [LastJob], Source={x:Static local:Localizer.Current}}" Style="{StaticResource SectionTitle}" Margin="0,0,0,8" />
+        <Button Style="{StaticResource HistoryRowButton}" Click="OpenJobs" ToolTip="{Binding LastJob.Detail}" AutomationProperties.Name="{Binding [JobHistory], Source={x:Static local:Localizer.Current}}">
+         <StackPanel><TextBlock Text="{Binding LastJob.Command}" Style="{StaticResource CommandText}" Margin="0,0,0,5" />
+          <StackPanel Orientation="Horizontal"><TextBlock Text="{Binding LastJob.User}" Style="{StaticResource Caption}" /><TextBlock Text=" · " Style="{StaticResource Caption}" /><TextBlock Text="{Binding [Ended], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" /><TextBlock Text="{Binding LastJob.Ended}" Style="{StaticResource Caption}" Margin="6,0,0,0" /></StackPanel>
+         </StackPanel>
+        </Button>
+       </StackPanel>
+       <Expander Style="{StaticResource SectionDisclosure}"><Expander.Header><TextBlock Text="{Binding ProcessHeading}" Style="{StaticResource SectionTitle}" /></Expander.Header><ItemsControl ItemsSource="{Binding Processes}" ItemTemplate="{StaticResource TaskTemplate}" /></Expander>
        <TextBlock Text="{Binding [System], Source={x:Static local:Localizer.Current}}" Style="{StaticResource SectionTitle}" Margin="0,0,0,8" />
        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="88" /><ColumnDefinition /><ColumnDefinition Width="230" /></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="24" /><RowDefinition Height="24" /><RowDefinition Height="24" /><RowDefinition Height="24" /><RowDefinition Height="24" /></Grid.RowDefinitions>
         <TextBlock Text="CPU" Style="{StaticResource Caption}" VerticalAlignment="Center" /><ProgressBar Grid.Column="1" Value="{Binding CpuValue, Mode=OneWay}" Foreground="{Binding CpuBrush}" VerticalAlignment="Center" /><TextBlock Grid.Column="2" Text="{Binding CpuDetail}" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="14" />
