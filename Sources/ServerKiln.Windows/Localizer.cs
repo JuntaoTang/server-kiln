@@ -22,6 +22,13 @@ public sealed class Localizer : INotifyPropertyChanged
     private static readonly Dictionary<string, (string En, string Zh)> Labels = new()
     {
         ["Device"] = ("Device", "设备"), ["Utilization"] = ("Utilization", "利用率"),
+        ["TrainingServers"] = ("Servers training", "服务器训练中"), ["BusyGpus"] = ("GPUs in use", "GPU 使用中"),
+        ["OnlineServers"] = ("Servers online", "服务器在线"), ["System"] = ("System", "系统"), ["Load"] = ("Load", "负载"),
+        ["NoRunningTasks"] = ("No running training jobs", "没有运行中的任务"), ["LastJob"] = ("Last job", "上一条任务"),
+        ["JobHistory"] = ("Job history", "任务记录"), ["BackToServers"] = ("‹  Servers", "‹  返回服务器"),
+        ["CpuRam"] = ("CPU / Memory", "CPU / 内存"), ["CopyPid"] = ("Copy PID", "复制 PID"),
+        ["CopyCwd"] = ("Copy directory", "复制目录"), ["CopySsh"] = ("Copy SSH", "复制 SSH"),
+        ["PollingFormat"] = ("Refresh every {0}s", "每 {0} 秒刷新"), ["Copied"] = ("Copied", "已复制"),
         ["Temperature"] = ("Temp.", "温度"), ["Power"] = ("Power", "功耗"), ["Details"] = ("Details", "详细信息"),
         ["FleetSummaryFormat"] = ("{0} monitored · {1} busy", "监控 {0} 台 · 忙碌 {1} 台"),
         ["Language"] = ("Switch language", "切换语言"),

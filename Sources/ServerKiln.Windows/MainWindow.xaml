@@ -3,142 +3,147 @@
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
  xmlns:local="clr-namespace:ServerKiln.Windows"
  xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
- Title="ServerKiln" Style="{StaticResource {x:Type Window}}" Width="1220" Height="830" MinWidth="980" MinHeight="650"
- WindowStyle="None" WindowStartupLocation="CenterScreen" Icon="AppIcon.ico" Closing="WindowClosing" IsVisibleChanged="VisibilityChanged">
+ Title="ServerKiln" Style="{StaticResource {x:Type Window}}" Width="1040" Height="900" MinWidth="900" MinHeight="650"
+ Background="{DynamicResource SidebarBrush}" WindowStyle="None" WindowStartupLocation="CenterScreen" Icon="AppIcon.ico" Closing="WindowClosing" IsVisibleChanged="VisibilityChanged">
  <shell:WindowChrome.WindowChrome><shell:WindowChrome CaptionHeight="38" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False" /></shell:WindowChrome.WindowChrome>
- <Grid>
-  <Grid.ColumnDefinitions><ColumnDefinition Width="240" /><ColumnDefinition /></Grid.ColumnDefinitions>
-  <Grid.RowDefinitions><RowDefinition Height="38" /><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-  <Border Grid.RowSpan="3" Background="{DynamicResource SidebarBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
-   <Grid Margin="12,8,12,12">
-    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-    <StackPanel Orientation="Horizontal" Margin="8,2,0,16">
-     <Image Source="AppIcon.ico" Width="22" Height="22" Margin="0,0,8,0" />
-     <TextBlock Text="ServerKiln" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
-    </StackPanel>
-    <Grid Grid.Row="1" Margin="8,0,0,8" Height="32">
-     <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-     <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><TextBlock Text="{Binding [Fleet], Source={x:Static local:Localizer.Current}}" FontSize="14" FontWeight="SemiBold" /><TextBlock Text="{Binding Servers.Count}" Style="{StaticResource Caption}" Margin="8,2,0,0" /></StackPanel>
-     <Button Grid.Column="1" Content="{Binding [ImportShort], Source={x:Static local:Localizer.Current}}" Style="{StaticResource GhostButton}" Click="ImportServers" Padding="8,4" ToolTip="{Binding [Import], Source={x:Static local:Localizer.Current}}" />
-     <Button Grid.Column="2" Content="&#xE710;" Style="{StaticResource IconButton}" Click="AddServer" ToolTip="{Binding [Add], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [Add], Source={x:Static local:Localizer.Current}}" />
-    </Grid>
-    <ListBox Grid.Row="2" ItemsSource="{Binding Servers}" SelectedItem="{Binding SelectedServer}" AutomationProperties.Name="{Binding [Fleet], Source={x:Static local:Localizer.Current}}">
-     <ListBox.ItemTemplate><DataTemplate>
-      <Grid ToolTip="{Binding Target}"><Grid.ColumnDefinitions><ColumnDefinition Width="40" /><ColumnDefinition /></Grid.ColumnDefinitions>
-       <Border Width="30" Height="30" Background="{DynamicResource RaisedBrush}" CornerRadius="4" HorizontalAlignment="Left" VerticalAlignment="Center"><TextBlock Text="&#xE968;" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
-       <StackPanel Grid.Column="1">
-        <DockPanel><TextBlock Text="{Binding Status}" Style="{StaticResource Caption}" DockPanel.Dock="Right" FontSize="13" Margin="8,1,0,0" /><TextBlock Text="{Binding Name}" FontSize="13" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}" /></DockPanel>
-        <TextBlock Text="{Binding Summary}" Style="{StaticResource Caption}" FontSize="13" Margin="0,4,0,0" TextTrimming="CharacterEllipsis" />
-       </StackPanel>
-      </Grid>
-     </DataTemplate></ListBox.ItemTemplate>
-    </ListBox>
-    <StackPanel Grid.Row="3" Margin="0,12,0,0">
-     <TextBlock Text="{Binding FleetSummary}" Style="{StaticResource Caption}" FontSize="13" Margin="8,0,0,12" />
-     <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="0,8,0,0">
-      <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-       <Button Style="{StaticResource GhostButton}" Click="OpenSettings" HorizontalAlignment="Left" Padding="8,4" Content="{Binding [Settings], Source={x:Static local:Localizer.Current}}" Foreground="{DynamicResource MutedBrush}" />
-       <Button Grid.Column="1" Content="EN / 中" Click="ToggleLanguage" Style="{StaticResource GhostButton}" Padding="8,4" FontSize="13" Foreground="{DynamicResource MutedBrush}" ToolTip="{Binding [Language], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [Language], Source={x:Static local:Localizer.Current}}" />
-      </Grid>
-     </Border>
-    </StackPanel>
-   </Grid>
-  </Border>
-  <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" shell:WindowChrome.IsHitTestVisibleInChrome="True">
-   <Button Style="{StaticResource CaptionButton}" Content="&#xE921;" Click="MinimizeWindow" ToolTip="{Binding [Minimize], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [Minimize], Source={x:Static local:Localizer.Current}}" />
-   <Button x:Name="MaximizeButton" Style="{StaticResource CaptionButton}" Content="&#xE922;" Click="MaximizeWindow" ToolTip="{Binding [Maximize], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [Maximize], Source={x:Static local:Localizer.Current}}" />
-   <Button Style="{StaticResource CloseButton}" Content="&#xE8BB;" Click="HideWindow" ToolTip="{Binding [Close], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [Close], Source={x:Static local:Localizer.Current}}" />
-  </StackPanel>
-  <Grid Grid.Column="1" Grid.Row="1" Margin="24,0,24,0">
-   <StackPanel Visibility="{Binding EmptyVisibility}" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="420">
-    <TextBlock Text="{Binding [NoServers], Source={x:Static local:Localizer.Current}}" FontSize="18" FontWeight="SemiBold" TextAlignment="Center" />
-    <TextBlock Text="{Binding [Welcome], Source={x:Static local:Localizer.Current}}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" TextAlignment="Center" LineHeight="22" Margin="0,12,0,24" />
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-     <Button Content="{Binding [Add], Source={x:Static local:Localizer.Current}}" Style="{StaticResource PrimaryButton}" Click="AddServer" Margin="0,0,8,0" />
-     <Button Content="{Binding [Import], Source={x:Static local:Localizer.Current}}" Click="ImportServers" />
-    </StackPanel>
-   </StackPanel>
-   <Grid Visibility="{Binding DetailVisibility}">
-    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition /></Grid.RowDefinitions>
-    <Grid Margin="0,4,0,16">
-     <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+ <Window.Resources>
+  <Style x:Key="DisclosureToggle" TargetType="ToggleButton">
+   <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" /><Setter Property="Cursor" Value="Hand" />
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ToggleButton">
+    <Border x:Name="HeaderChrome" Background="Transparent" Padding="16,12" CornerRadius="8">
+     <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="20" /></Grid.ColumnDefinitions>
+      <ContentPresenter VerticalAlignment="Center" />
+      <Path x:Name="Chevron" Grid.Column="1" Data="M 0,0 L 4,4 L 0,8" Stroke="{DynamicResource MutedBrush}" StrokeThickness="1.5" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5" />
+     </Grid>
+    </Border>
+    <ControlTemplate.Triggers>
+     <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="HeaderChrome" Property="Background" Value="#08646A73" /></Trigger>
+     <Trigger Property="IsChecked" Value="True"><Setter TargetName="Chevron" Property="RenderTransform"><Setter.Value><RotateTransform Angle="90" /></Setter.Value></Setter></Trigger>
+    </ControlTemplate.Triggers>
+   </ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <Style x:Key="Disclosure" TargetType="Expander">
+   <Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+   <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="Padding" Value="16,0,16,16" />
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Expander">
+    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8">
      <StackPanel>
-      <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-       <TextBlock Text="{Binding SelectedServer.Name}" FontSize="18" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" MaxWidth="360" ToolTip="{Binding SelectedServer.Target}" />
-       <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center"><Ellipse Width="6" Height="6" Fill="{Binding SelectedServer.StatusBrush}" Margin="0,0,4,0" /><TextBlock Text="{Binding SelectedServer.Status}" Style="{StaticResource Caption}" /></StackPanel>
-      </Grid>
-      <TextBlock Text="{Binding SelectedServer.Subtitle}" Style="{StaticResource Caption}" Margin="0,4,12,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding SelectedServer.Subtitle}" />
-     </StackPanel>
-     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
-      <Button Click="OpenTerminal" Padding="11,4" Margin="0,0,8,0" ToolTip="{Binding [OpenSsh], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [OpenSsh], Source={x:Static local:Localizer.Current}}">
-       <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE756;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" Margin="0,0,8,0" /><TextBlock Text="{Binding [Terminal], Source={x:Static local:Localizer.Current}}" /></StackPanel>
-      </Button>
-      <Button Content="&#xE72C;" Click="Refresh" Style="{StaticResource IconButton}" Margin="0,0,2,0" ToolTip="{Binding [Refresh], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [Refresh], Source={x:Static local:Localizer.Current}}" />
-      <Button x:Name="ServerMenuButton" Content="&#xE712;" Click="OpenServerMenu" Style="{StaticResource IconButton}" ToolTip="{Binding [More], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [More], Source={x:Static local:Localizer.Current}}">
-       <Button.ContextMenu><ContextMenu>
-        <MenuItem Header="{Binding [Edit], Source={x:Static local:Localizer.Current}}" Click="EditServer" />
-        <MenuItem Header="{Binding [FirstConnect], Source={x:Static local:Localizer.Current}}" Click="OpenTerminal" />
-        <Separator />
-        <MenuItem Header="{Binding [Remove], Source={x:Static local:Localizer.Current}}" Click="RemoveServer" Foreground="{DynamicResource DangerBrush}" />
-       </ContextMenu></Button.ContextMenu>
-      </Button>
-     </StackPanel>
-    </Grid>
-    <Border Grid.Row="1" Background="{DynamicResource DangerSoftBrush}" CornerRadius="4" Padding="12" Margin="0,0,0,12" Visibility="{Binding SelectedServer.ErrorVisibility}">
-     <StackPanel>
-      <TextBlock Text="{Binding SelectedServer.ErrorTitle}" FontWeight="SemiBold" Foreground="{DynamicResource DangerBrush}" Margin="0,0,0,4" />
-      <TextBlock Text="{Binding SelectedServer.ErrorHint}" TextWrapping="Wrap" Style="{StaticResource Caption}" LineHeight="20" />
-      <Expander Header="{Binding [Details], Source={x:Static local:Localizer.Current}}" Margin="0,8,0,0" Foreground="{DynamicResource TextBrush}"><TextBlock Text="{Binding SelectedServer.Error}" TextWrapping="Wrap" Foreground="{DynamicResource DangerBrush}" FontSize="13" Margin="0,4,0,0" /></Expander>
-      <Button Content="{Binding [FirstConnect], Source={x:Static local:Localizer.Current}}" Click="OpenTerminal" HorizontalAlignment="Left" Padding="8,4" Margin="0,8,0,0" />
+      <ToggleButton Style="{StaticResource DisclosureToggle}" IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" Content="{TemplateBinding Header}" />
+      <ContentPresenter x:Name="Body" Visibility="Collapsed" Margin="{TemplateBinding Padding}" />
      </StackPanel>
     </Border>
-    <TabControl Grid.Row="2" SelectionChanged="TabChanged" x:Name="DetailTabs">
-     <TabItem Header="{Binding [Overview], Source={x:Static local:Localizer.Current}}">
-      <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-       <StackPanel Margin="0,24,8,0">
-        <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="0,0,0,24" Margin="0,0,0,24">
-         <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="1" /><ColumnDefinition /><ColumnDefinition Width="1" /><ColumnDefinition /><ColumnDefinition Width="1" /><ColumnDefinition /></Grid.ColumnDefinitions>
-          <StackPanel Margin="0,0,24,0"><TextBlock Text="{Binding [Cpu], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" /><TextBlock Text="{Binding SelectedServer.Cpu}" Style="{StaticResource MetricValue}" /><TextBlock Text="{Binding SelectedServer.Cores}" Style="{StaticResource Caption}" /></StackPanel>
-          <Border Grid.Column="1" Background="{DynamicResource BorderBrush}" Margin="0,4" />
-          <StackPanel Grid.Column="2" Margin="24,0"><TextBlock Text="{Binding [Ram], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" /><TextBlock Text="{Binding SelectedServer.Ram}" Style="{StaticResource MetricValue}" /><TextBlock Text="{Binding SelectedServer.RamSize}" Style="{StaticResource Caption}" /></StackPanel>
-          <Border Grid.Column="3" Background="{DynamicResource BorderBrush}" Margin="0,4" />
-          <StackPanel Grid.Column="4" Margin="24,0"><TextBlock Text="{Binding [Disk], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" /><TextBlock Text="{Binding SelectedServer.Disk}" Style="{StaticResource MetricValue}" /><TextBlock Text="{Binding SelectedServer.DiskSize}" Style="{StaticResource Caption}" /></StackPanel>
-          <Border Grid.Column="5" Background="{DynamicResource BorderBrush}" Margin="0,4" />
-          <StackPanel Grid.Column="6" Margin="24,0,0,0"><TextBlock Text="{Binding [Network], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" /><TextBlock Text="{Binding SelectedServer.Rx}" FontSize="17" Margin="0,12,0,8" /><TextBlock Text="{Binding SelectedServer.Tx}" Style="{StaticResource Caption}" /></StackPanel>
-         </Grid>
-        </Border>
-        <TextBlock Text="GPU" Style="{StaticResource SectionTitle}" Margin="0,0,0,12" Visibility="{Binding SelectedServer.GpuVisibility}" />
-        <TextBlock Text="{Binding SelectedServer.GpuMessage}" Visibility="{Binding SelectedServer.GpuMessageVisibility}" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,16" />
-        <Grid Visibility="{Binding SelectedServer.GpuVisibility}">
-         <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition /></Grid.RowDefinitions>
-         <Border Background="{DynamicResource RaisedBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="12,8">
-          <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="1.6*" /><ColumnDefinition /><ColumnDefinition Width="1.6*" /><ColumnDefinition Width="68" /><ColumnDefinition Width="68" /></Grid.ColumnDefinitions>
-           <TextBlock Text="{Binding [Device], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" /><TextBlock Grid.Column="1" Text="{Binding [Utilization], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" /><TextBlock Grid.Column="2" Text="{Binding [Vram], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" /><TextBlock Grid.Column="3" Text="{Binding [Temperature], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" /><TextBlock Grid.Column="4" Text="{Binding [Power], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" />
-          </Grid>
-         </Border>
-         <ItemsControl Grid.Row="1" ItemsSource="{Binding SelectedServer.Gpus}"><ItemsControl.ItemTemplate><DataTemplate>
-          <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="12,12">
-           <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="1.6*" /><ColumnDefinition /><ColumnDefinition Width="1.6*" /><ColumnDefinition Width="68" /><ColumnDefinition Width="68" /></Grid.ColumnDefinitions>
-            <StackPanel Margin="0,0,12,0"><TextBlock Text="{Binding Model}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}" /><TextBlock Text="{Binding Index}" Style="{StaticResource Caption}" Margin="0,4,0,0" /></StackPanel>
-            <StackPanel Grid.Column="1" Margin="0,0,24,0" VerticalAlignment="Center"><TextBlock Text="{Binding Utilization}" /><ProgressBar Margin="0,8,0,0" Value="{Binding UtilizationValue, Mode=OneWay}" /></StackPanel>
-            <StackPanel Grid.Column="2" Margin="0,0,24,0" VerticalAlignment="Center"><TextBlock Text="{Binding Memory}" FontSize="13" /><ProgressBar Margin="0,8,0,0" Value="{Binding MemoryValue, Mode=OneWay}" Foreground="{DynamicResource SecondaryMetricBrush}" /></StackPanel>
-            <TextBlock Grid.Column="3" Text="{Binding Temperature}" VerticalAlignment="Center" FontSize="13" /><TextBlock Grid.Column="4" Text="{Binding Power}" VerticalAlignment="Center" FontSize="13" />
-           </Grid>
-          </Border>
-         </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
-        </Grid>
-        <TextBlock Text="{Binding [Processes], Source={x:Static local:Localizer.Current}}" Style="{StaticResource SectionTitle}" Margin="0,24,0,12" />
-        <DataGrid ItemsSource="{Binding SelectedServer.Processes}" MinHeight="110" MaxHeight="260" x:Name="ProcessGrid">
-         <DataGrid.Columns>
-          <DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="72" /><DataGridTextColumn Header="{Binding [User], Source={x:Static local:Localizer.Current}}" Binding="{Binding User}" Width="95" /><DataGridTextColumn Header="CPU" Binding="{Binding Cpu}" Width="72" /><DataGridTextColumn Header="RAM" Binding="{Binding Ram}" Width="90" /><DataGridTextColumn Header="{Binding [Command], Source={x:Static local:Localizer.Current}}" Binding="{Binding Command}" ElementStyle="{StaticResource CommandText}" Width="*" MinWidth="180" />
-         </DataGrid.Columns>
-         <DataGrid.ContextMenu><ContextMenu><MenuItem Header="{Binding [Copy], Source={x:Static local:Localizer.Current}}" Click="CopyCommand" /></ContextMenu></DataGrid.ContextMenu>
-         <DataGrid.RowStyle><Style TargetType="DataGridRow"><Setter Property="ToolTip" Value="{Binding Detail}" /></Style></DataGrid.RowStyle>
-        </DataGrid>
+    <ControlTemplate.Triggers><Trigger Property="IsExpanded" Value="True"><Setter TargetName="Body" Property="Visibility" Value="Visible" /></Trigger></ControlTemplate.Triggers>
+   </ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <Style x:Key="TaskDisclosure" TargetType="Expander" BasedOn="{StaticResource Disclosure}">
+   <Setter Property="Background" Value="{DynamicResource SidebarBrush}" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Padding" Value="16,0,16,12" /><Setter Property="Margin" Value="0,0,0,6" />
+  </Style>
+  <Style x:Key="ValueMeter" TargetType="ProgressBar" BasedOn="{StaticResource {x:Type ProgressBar}}">
+   <Setter Property="Height" Value="28" /><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ProgressBar">
+    <Grid><Border Background="{TemplateBinding Background}" CornerRadius="4" /><Border x:Name="PART_Track" /><Border x:Name="PART_Indicator" Background="{TemplateBinding Foreground}" HorizontalAlignment="Left" CornerRadius="4" /></Grid>
+   </ControlTemplate></Setter.Value></Setter>
+  </Style>
+  <DataTemplate x:Key="TaskTemplate">
+   <Expander Style="{StaticResource TaskDisclosure}" IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
+    <Expander.Header><StackPanel>
+     <TextBlock Text="{Binding ShortCommand}" Style="{StaticResource CommandText}" Margin="0,0,0,5" ToolTip="{Binding Command}" />
+     <TextBlock Text="{Binding Metadata}" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" />
+    </StackPanel></Expander.Header>
+    <StackPanel>
+     <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="0,12,0,0">
+      <TextBox Text="{Binding Command, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="{DynamicResource RaisedBrush}" Padding="10,8" FontFamily="Cascadia Mono, Consolas, Microsoft YaHei UI" FontSize="13" MaxHeight="200" VerticalScrollBarVisibility="Auto" />
+     </Border>
+     <Grid Margin="0,12,0,8">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition /></Grid.ColumnDefinitions>
+      <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+      <TextBlock Text="{Binding [Cwd], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" Margin="0,0,16,8" /><TextBlock Grid.Column="1" Text="{Binding Cwd}" Style="{StaticResource CommandText}" TextWrapping="Wrap" Margin="0,0,0,8" />
+      <TextBlock Grid.Row="1" Text="PID" Style="{StaticResource Caption}" Margin="0,0,16,8" /><TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Pid}" Margin="0,0,0,8" />
+      <TextBlock Grid.Row="2" Text="{Binding [Started], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" Margin="0,0,16,8" /><TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Started}" Margin="0,0,0,8" />
+      <TextBlock Grid.Row="3" Text="{Binding [CpuRam], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" Margin="0,0,16,0" /><TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding CpuRam}" />
+     </Grid>
+     <WrapPanel HorizontalAlignment="Right"><Button Content="{Binding [Copy], Source={x:Static local:Localizer.Current}}" Click="CopyCommand" Margin="0,4,8,0" /><Button Content="{Binding [CopyCwd], Source={x:Static local:Localizer.Current}}" Click="CopyCwd" IsEnabled="{Binding HasCwd}" Margin="0,4,8,0" /><Button Content="{Binding [CopyPid], Source={x:Static local:Localizer.Current}}" Click="CopyPid" Margin="0,4,0,0" /></WrapPanel>
+    </StackPanel>
+   </Expander>
+  </DataTemplate>
+ </Window.Resources>
+ <Grid>
+  <Grid.RowDefinitions><RowDefinition Height="38" /><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+  <Grid Background="{DynamicResource SurfaceBrush}">
+   <StackPanel Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center"><Image Source="AppIcon.ico" Width="20" Height="20" Margin="0,0,8,0" /><TextBlock Text="ServerKiln" FontSize="13" FontWeight="SemiBold" /></StackPanel>
+   <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+    <Button Style="{StaticResource CaptionButton}" Content="&#xE921;" Click="MinimizeWindow" ToolTip="{Binding [Minimize], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [Minimize], Source={x:Static local:Localizer.Current}}" />
+    <Button x:Name="MaximizeButton" Style="{StaticResource CaptionButton}" Content="&#xE922;" Click="MaximizeWindow" />
+    <Button Style="{StaticResource CloseButton}" Content="&#xE8BB;" Click="HideWindow" ToolTip="{Binding [Close], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [Close], Source={x:Static local:Localizer.Current}}" />
+   </StackPanel>
+  </Grid>
+  <Grid Grid.Row="1" x:Name="FleetView" Margin="24,12,24,0">
+   <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition /></Grid.RowDefinitions>
+   <Grid Margin="0,0,0,12"><TextBlock Text="{Binding [Fleet], Source={x:Static local:Localizer.Current}}" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" /><StackPanel Orientation="Horizontal" HorizontalAlignment="Right"><Button Content="{Binding [ImportShort], Source={x:Static local:Localizer.Current}}" Click="ImportServers" Style="{StaticResource GhostButton}" Margin="0,0,8,0" /><Button Content="{Binding [Add], Source={x:Static local:Localizer.Current}}" Click="AddServer" /></StackPanel></Grid>
+   <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,16">
+    <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="20,12" Margin="0,0,8,0"><StackPanel>
+     <StackPanel Orientation="Horizontal"><TextBlock Text="{Binding TrainingCount}" FontSize="30" FontWeight="SemiBold" Foreground="{Binding TrainingBrush}" /><TextBlock Text="{Binding TrainingTotal}" Foreground="{DynamicResource MutedBrush}" FontSize="18" VerticalAlignment="Bottom" Margin="6,0,0,4" /></StackPanel><ProgressBar Value="{Binding TrainingFraction, Mode=OneWay}" Foreground="{Binding TrainingBrush}" Margin="0,8,0,8" /><TextBlock Text="{Binding [TrainingServers], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" />
+    </StackPanel></Border>
+    <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="20,12" Margin="4,0,4,0"><StackPanel>
+     <StackPanel Orientation="Horizontal"><TextBlock Text="{Binding BusyGpuCount}" FontSize="30" FontWeight="SemiBold" Foreground="{Binding GpuBrush}" /><TextBlock Text="{Binding GpuTotal}" Foreground="{DynamicResource MutedBrush}" FontSize="18" VerticalAlignment="Bottom" Margin="6,0,0,4" /></StackPanel><ProgressBar Value="{Binding GpuFraction, Mode=OneWay}" Foreground="{Binding GpuBrush}" Margin="0,8,0,8" /><TextBlock Text="{Binding [BusyGpus], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" />
+    </StackPanel></Border>
+    <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="20,12" Margin="8,0,0,0"><StackPanel>
+     <StackPanel Orientation="Horizontal"><TextBlock Text="{Binding OnlineCount}" FontSize="30" FontWeight="SemiBold" /><TextBlock Text="{Binding OnlineTotal}" Foreground="{DynamicResource MutedBrush}" FontSize="18" VerticalAlignment="Bottom" Margin="6,0,0,4" /></StackPanel><ProgressBar Value="{Binding OnlineFraction, Mode=OneWay}" Foreground="{DynamicResource GreenBrush}" Margin="0,8,0,8" /><TextBlock Text="{Binding [OnlineServers], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" />
+    </StackPanel></Border>
+   </UniformGrid>
+   <StackPanel Grid.Row="2" Visibility="{Binding EmptyVisibility}" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="420"><TextBlock Text="{Binding [NoServers], Source={x:Static local:Localizer.Current}}" FontSize="18" FontWeight="SemiBold" TextAlignment="Center" /><TextBlock Text="{Binding [Welcome], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" TextWrapping="Wrap" TextAlignment="Center" Margin="0,12,0,24" /><Button Content="{Binding [Add], Source={x:Static local:Localizer.Current}}" Click="AddServer" HorizontalAlignment="Center" /></StackPanel>
+   <ScrollViewer Grid.Row="2" x:Name="FleetScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <ItemsControl x:Name="ServerCards" ItemsSource="{Binding Servers}" Margin="0,0,8,0"><ItemsControl.ItemTemplate><DataTemplate>
+     <Expander Style="{StaticResource Disclosure}" IsExpanded="{Binding IsExpanded, Mode=TwoWay}" Margin="0,0,0,12">
+      <Expander.Header><Grid Margin="0,0,8,0"><Grid.ColumnDefinitions><ColumnDefinition Width="18" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+       <Ellipse Width="7" Height="7" Fill="{Binding ConnectionBrush}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="{Binding HeaderHint}" />
+       <StackPanel Grid.Column="1" Margin="0,0,12,0">
+        <StackPanel Orientation="Horizontal"><TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" MaxWidth="300" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}" /><Border Background="{Binding OccupancyFill}" CornerRadius="10" Padding="8,1" Margin="8,0,0,0" Visibility="{Binding GpuVisibility}"><TextBlock Text="{Binding Occupancy}" Foreground="{Binding OccupancyBrush}" FontSize="13" FontWeight="SemiBold" /></Border></StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,6,0,0" Visibility="{Binding HeaderMetricsVisibility}"><TextBlock Text="CPU" Style="{StaticResource Caption}" FontSize="12" Margin="0,0,5,0" VerticalAlignment="Center" /><TextBlock Text="{Binding Cpu}" FontSize="13" Margin="0,0,16,0" /><TextBlock Text="MEM" Style="{StaticResource Caption}" FontSize="12" Margin="0,0,5,0" VerticalAlignment="Center" /><TextBlock Text="{Binding Ram}" FontSize="13" Margin="0,0,20,0" /><TextBlock Text="{Binding Rx}" Style="{StaticResource Caption}" Margin="0,0,16,0" /><TextBlock Text="{Binding Tx}" Style="{StaticResource Caption}" /><TextBlock Text="{Binding Status}" Style="{StaticResource Caption}" Margin="16,0,0,0" /></StackPanel>
+        <TextBlock Text="{Binding HeaderHint}" Visibility="{Binding HeaderMessageVisibility}" Style="{StaticResource Caption}" Margin="0,6,0,0" TextTrimming="CharacterEllipsis" />
        </StackPanel>
-      </ScrollViewer>
-     </TabItem>
-     <TabItem Header="{Binding [Jobs], Source={x:Static local:Localizer.Current}}" x:Name="JobsTab">
+       <local:GpuMiniBars Grid.Column="2" Snapshot="{Binding Reading.Snapshot}" VerticalAlignment="Center" ToolTip="{Binding GpuModel}" />
+      </Grid></Expander.Header>
+      <StackPanel>
+       <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Margin="0,0,0,12" />
+       <Border Background="{DynamicResource DangerSoftBrush}" CornerRadius="4" Padding="12" Margin="0,0,0,12" Visibility="{Binding ErrorVisibility}"><StackPanel><TextBlock Text="{Binding ErrorTitle}" FontWeight="SemiBold" Foreground="{DynamicResource DangerBrush}" /><TextBlock Text="{Binding ErrorHint}" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,6,0,0" /><TextBox Text="{Binding Error, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" MaxHeight="100" VerticalScrollBarVisibility="Auto" Margin="0,8,0,8" /><Button Content="{Binding [FirstConnect], Source={x:Static local:Localizer.Current}}" Click="OpenTerminal" HorizontalAlignment="Left" /></StackPanel></Border>
+       <TextBlock Text="{Binding GpuMessage}" Visibility="{Binding GpuMessageVisibility}" Style="{StaticResource Caption}" TextWrapping="Wrap" Margin="0,0,0,12" />
+       <Grid Visibility="{Binding GpuVisibility}" Margin="0,0,0,16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition /></Grid.RowDefinitions>
+        <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="44" /><ColumnDefinition Width="2.4*" /><ColumnDefinition /><ColumnDefinition Width="72" /></Grid.ColumnDefinitions><TextBlock Grid.ColumnSpan="2" Text="{Binding GpuModel}" Style="{StaticResource SectionTitle}" TextTrimming="CharacterEllipsis" Margin="0,0,110,0" ToolTip="{Binding GpuModel}" /><TextBlock Grid.Column="1" Text="{Binding [Vram], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" HorizontalAlignment="Right" Margin="0,0,12,0" /><TextBlock Grid.Column="2" Text="{Binding [Utilization], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" /></Grid>
+        <ItemsControl Grid.Row="1" ItemsSource="{Binding Gpus}"><ItemsControl.ItemTemplate><DataTemplate>
+         <Grid Margin="0,0,0,6" ToolTip="{Binding Name}"><Grid.ColumnDefinitions><ColumnDefinition Width="44" /><ColumnDefinition Width="2.4*" /><ColumnDefinition /><ColumnDefinition Width="72" /></Grid.ColumnDefinitions>
+          <Border Background="{DynamicResource RaisedBrush}" CornerRadius="4" Width="30" Height="28" HorizontalAlignment="Left"><TextBlock Text="{Binding Number}" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+          <Grid Grid.Column="1" Margin="0,0,10,0"><ProgressBar Style="{StaticResource ValueMeter}" Value="{Binding MemoryValue, Mode=OneWay}" Foreground="{Binding MemoryFill}" /><TextBlock Text="{Binding Memory}" FontSize="13" FontWeight="SemiBold" Margin="10,0" VerticalAlignment="Center" /></Grid>
+          <Grid Grid.Column="2"><ProgressBar Style="{StaticResource ValueMeter}" Value="{Binding UtilizationValue, Mode=OneWay}" Foreground="{Binding UtilizationFill}" /><TextBlock Text="{Binding Utilization}" FontSize="13" FontWeight="SemiBold" Margin="10,0" VerticalAlignment="Center" /></Grid>
+          <StackPanel Grid.Column="3" HorizontalAlignment="Right"><TextBlock Text="{Binding Temperature}" FontSize="12" HorizontalAlignment="Right" /><TextBlock Text="{Binding Power}" Style="{StaticResource Caption}" FontSize="11" HorizontalAlignment="Right" /></StackPanel>
+         </Grid>
+        </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+       </Grid>
+       <TextBlock Text="{Binding TaskHeading}" Style="{StaticResource SectionTitle}" Margin="0,0,0,8" /><TextBlock Text="{Binding [NoRunningTasks], Source={x:Static local:Localizer.Current}}" Visibility="{Binding NoTasksVisibility}" Style="{StaticResource Caption}" Margin="0,0,0,8" /><ItemsControl ItemsSource="{Binding Tasks}" ItemTemplate="{StaticResource TaskTemplate}" />
+       <Grid Margin="0,8,0,8" Visibility="{Binding LastJobVisibility}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock Text="{Binding [LastJob], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" VerticalAlignment="Center" Margin="0,0,12,0" /><TextBlock Grid.Column="1" Text="{Binding LastJob.Command}" Style="{StaticResource CommandText}" VerticalAlignment="Center" Margin="0,0,12,0" ToolTip="{Binding LastJob.Detail}" /><Button Grid.Column="2" Content="{Binding [JobHistory], Source={x:Static local:Localizer.Current}}" Click="OpenJobs" Style="{StaticResource GhostButton}" /></Grid>
+       <Expander Style="{StaticResource TaskDisclosure}" Header="{Binding ProcessHeading}" Margin="0,0,0,12"><ItemsControl ItemsSource="{Binding Processes}" ItemTemplate="{StaticResource TaskTemplate}" /></Expander>
+       <TextBlock Text="{Binding [System], Source={x:Static local:Localizer.Current}}" Style="{StaticResource SectionTitle}" Margin="0,0,0,8" />
+       <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="88" /><ColumnDefinition /><ColumnDefinition Width="230" /></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="24" /><RowDefinition Height="24" /><RowDefinition Height="24" /><RowDefinition Height="24" /><RowDefinition Height="24" /></Grid.RowDefinitions>
+        <TextBlock Text="CPU" Style="{StaticResource Caption}" VerticalAlignment="Center" /><ProgressBar Grid.Column="1" Value="{Binding CpuValue, Mode=OneWay}" Foreground="{Binding CpuBrush}" VerticalAlignment="Center" /><TextBlock Grid.Column="2" Text="{Binding CpuDetail}" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="13" />
+        <TextBlock Grid.Row="1" Text="{Binding [Ram], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" VerticalAlignment="Center" /><ProgressBar Grid.Row="1" Grid.Column="1" Value="{Binding RamValue, Mode=OneWay}" Foreground="{Binding RamBrush}" VerticalAlignment="Center" /><TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding RamDetail}" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="13" />
+        <TextBlock Grid.Row="2" Text="{Binding [Disk], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" VerticalAlignment="Center" /><ProgressBar Grid.Row="2" Grid.Column="1" Value="{Binding DiskValue, Mode=OneWay}" Foreground="{Binding DiskBrush}" VerticalAlignment="Center" /><TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding DiskDetail}" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="13" />
+        <TextBlock Grid.Row="3" Text="{Binding [Network], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" VerticalAlignment="Center" /><TextBlock Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Text="{Binding Network}" FontSize="13" VerticalAlignment="Center" />
+        <TextBlock Grid.Row="4" Text="{Binding [Load], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" VerticalAlignment="Center" /><TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Load}" FontSize="13" VerticalAlignment="Center" /><TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding Uptime}" Style="{StaticResource Caption}" VerticalAlignment="Center" HorizontalAlignment="Right" />
+       </Grid>
+       <TextBlock Text="{Binding Subtitle}" Style="{StaticResource Caption}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Subtitle}" Margin="0,4,0,12" />
+       <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock Text="{Binding Target}" Style="{StaticResource CommandText}" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,12,0" />
+        <StackPanel Grid.Column="1" Orientation="Horizontal"><Button Content="{Binding [History], Source={x:Static local:Localizer.Current}}" Click="OpenHistory" Style="{StaticResource GhostButton}" Margin="0,0,8,0" /><Button Content="{Binding [CopySsh], Source={x:Static local:Localizer.Current}}" Click="CopySsh" Style="{StaticResource GhostButton}" Margin="0,0,8,0" /><Button Content="{Binding [Terminal], Source={x:Static local:Localizer.Current}}" Click="OpenTerminal" Margin="0,0,8,0" />
+         <Button Content="&#xE712;" Click="OpenServerMenu" Style="{StaticResource IconButton}" ToolTip="{Binding [More], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [More], Source={x:Static local:Localizer.Current}}"><Button.ContextMenu><ContextMenu><MenuItem Header="{Binding [Edit], Source={x:Static local:Localizer.Current}}" Click="EditServer" /><MenuItem Header="{Binding [FirstConnect], Source={x:Static local:Localizer.Current}}" Click="OpenTerminal" /><MenuItem Header="{Binding [JobHistory], Source={x:Static local:Localizer.Current}}" Click="OpenJobs" /><Separator /><MenuItem Header="{Binding [Remove], Source={x:Static local:Localizer.Current}}" Click="RemoveServer" Foreground="{DynamicResource DangerBrush}" /></ContextMenu></Button.ContextMenu></Button>
+        </StackPanel>
+       </Grid>
+      </StackPanel>
+     </Expander>
+    </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+   </ScrollViewer>
+  </Grid>
+  <Grid Grid.Row="1" x:Name="DetailView" Visibility="Collapsed" Background="{DynamicResource SurfaceBrush}" Margin="24,12,24,0"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition /></Grid.RowDefinitions>
+   <DockPanel Margin="0,0,0,16"><Button Content="{Binding [BackToServers], Source={x:Static local:Localizer.Current}}" Click="BackToFleet" Style="{StaticResource GhostButton}" DockPanel.Dock="Left" Margin="0,0,16,0" /><TextBlock Text="{Binding SelectedServer.Name}" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" /></DockPanel>
+   <TabControl Grid.Row="1" x:Name="DetailTabs" SelectionChanged="TabChanged">
+     <TabItem Header="{Binding [JobHistory], Source={x:Static local:Localizer.Current}}" x:Name="JobsTab">
       <Grid Margin="0,16,8,0"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition /></Grid.RowDefinitions>
        <TextBlock Text="{Binding SelectedServer.JobMessage}" Style="{StaticResource Caption}" />
        <DataGrid Grid.Row="1" ItemsSource="{Binding SelectedServer.Jobs}">
@@ -164,12 +169,13 @@
        </StackPanel>
       </ScrollViewer>
      </TabItem>
-    </TabControl>
-   </Grid>
+
+   </TabControl>
   </Grid>
-  <DockPanel Grid.Column="1" Grid.Row="2" Margin="24,12,24,12">
-   <TextBlock DockPanel.Dock="Right" Text="{Binding [TrayHint], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" FontSize="13" Margin="16,0,0,0" />
-   <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource Caption}" FontSize="13" TextTrimming="CharacterEllipsis" ToolTip="{Binding StatusMessage}" />
-  </DockPanel>
+  <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="24,8"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+   <StackPanel Orientation="Horizontal" VerticalAlignment="Center"><Ellipse Width="6" Height="6" Fill="{DynamicResource GreenBrush}" Margin="0,0,8,0" /><TextBlock Text="{Binding PollingLabel}" Style="{StaticResource Caption}" /></StackPanel>
+   <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" Style="{StaticResource Caption}" Margin="16,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip="{Binding StatusMessage}" />
+   <StackPanel Grid.Column="2" Orientation="Horizontal"><Button Content="&#xE72C;" Click="Refresh" Style="{StaticResource IconButton}" ToolTip="{Binding [Refresh], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [Refresh], Source={x:Static local:Localizer.Current}}" Margin="0,0,8,0" /><Button Content="&#xE713;" Click="OpenSettings" Style="{StaticResource IconButton}" ToolTip="{Binding [Settings], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [Settings], Source={x:Static local:Localizer.Current}}" Margin="0,0,8,0" /><Button Content="EN / 中" Click="ToggleLanguage" Style="{StaticResource GhostButton}" ToolTip="{Binding [Language], Source={x:Static local:Localizer.Current}}" /></StackPanel>
+  </Grid></Border>
  </Grid>
 </Window>

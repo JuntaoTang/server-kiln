@@ -20,10 +20,12 @@ internal static class DemoData
                 output += i == 0 ? "@@GPU\n0, GPU-demo-a, NVIDIA RTX 4090, 96, 21840, 24564, 71, 378, 450\n1, GPU-demo-b, NVIDIA RTX 4090, 89, 20200, 24564, 68, 350, 450\n@@APPS\nGPU-demo-a, 4242, 21700\nGPU-demo-b, 4242, 20000\n"
                     : "@@GPU\n0, GPU-demo-c, NVIDIA A100-SXM4-80GB, 0, 12, 81920, 34, 52, 400\n";
             else output += "@@NOGPU\n";
-            output += "@@PS\n4242 researcher 7384 198.5 10485760 torchrun --nproc_per_node=2 train.py --config configs/run.yaml\n@@TOP\n4242 researcher 7384 198.5 10485760 torchrun --nproc_per_node=2 train.py --config configs/run.yaml\n520 researcher 2400 12.5 400000 python prepare_dataset.py\n@@CWD\n4242 /workspace/training\n520 /workspace/data\n@@END\n";
+            output += i == 1 ? "@@TOP\n520 researcher 2400 0.5 400000 jupyter-lab --no-browser\n@@CWD\n520 /workspace/notebooks\n@@END\n"
+                : "@@PS\n4242 researcher 7384 198.5 10485760 torchrun --nproc_per_node=2 train.py --config configs/run.yaml\n@@TOP\n4242 researcher 7384 198.5 10485760 torchrun --nproc_per_node=2 train.py --config configs/run.yaml\n520 researcher 2400 12.5 400000 python prepare_dataset.py\n@@CWD\n4242 /workspace/training\n520 /workspace/data\n@@END\n";
             var snapshot = SnapshotParser.Parse(output, now);
-            var jobs = new[] { new TaskRecord("torchrun --nproc_per_node=2 train.py --config configs/run.yaml", "researcher", "/workspace/training", snapshot.Gpus.Select(g => g.Index).ToArray(), now.AddHours(-2)),
-                new TaskRecord("python evaluate.py --checkpoint outputs/epoch-12", "researcher", "/workspace/training", snapshot.Gpus.Take(1).Select(g => g.Index).ToArray(), now.AddHours(-5), now.AddHours(-3)) };
+            snapshot = snapshot with { System = snapshot.System with { CpuUsage = i == 1 ? 0.07 : i == 2 ? 0.32 : 0.65, Load = [4.2, 3.8, 3.4] } };
+            var lastJob = new TaskRecord("python evaluate.py --checkpoint outputs/epoch-12", "researcher", "/workspace/training", snapshot.Gpus.Take(1).Select(g => g.Index).ToArray(), now.AddHours(-5), now.AddHours(-3));
+            var jobs = i == 1 ? new[] { lastJob } : new[] { new TaskRecord("torchrun --nproc_per_node=2 train.py --config configs/run.yaml", "researcher", "/workspace/training", snapshot.Gpus.Select(g => g.Index).ToArray(), now.AddHours(-2)), lastJob };
             app.ViewModel.Apply(new ServerReading(server, snapshot, LastAttempt: now, LastSuccess: now,
                 Activity: i == 0 ? ServerActivity.Busy : i == 1 ? ServerActivity.Idle : ServerActivity.CpuOnly, Jobs: jobs));
             for (var n = 0; n < 288; n++)

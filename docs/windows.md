@@ -107,19 +107,36 @@ SSH configuration. A selected file is passed as a separate `-i` argument with
 - Aggregate / per-GPU history, utilization / VRAM selection and recent grouped jobs.
 - English / Chinese switching and a fixed light interface.
 
-Select a server in the left list. Overview contains system metrics and GPU /
-process tables; Jobs lists commands, users, GPU indices and start / end times;
-History contains chart controls and resource curves. Add and import controls are
-beside the server-list heading. Terminal and refresh stay in the header; **Edit**,
-**Remove** and **First connection** are in its **⋯** menu. Settings and language
-controls sit at the bottom of the sidebar. Settings are grouped into Monitoring,
-SSH connection and iPhone notifications. This Windows client always uses the
-light palette. Older settings containing a dark-theme preference still load their
-servers and connection settings; the obsolete theme field is ignored.
+The three summary tiles follow the Mac app: training servers / GPU servers,
+GPUs in use / total GPUs, and online / enabled servers. CPU-only hosts count
+in online totals. Busy GPU counts use the policy in Settings; paused servers
+and offline GPU capacity are excluded from these totals.
 
-左侧列表选择服务器，标题旁可添加和导入。总览显示系统指标、GPU 和进程表格；
-任务表按列显示命令、用户、GPU 和起止时间；历史页查看曲线。顶部保留终端与刷新，
-编辑、移除和首次连接在 **⋯** 菜单中；设置及语言切换位于侧栏底部。
+Click a server card to expand its GPU meters, running tasks and system resources.
+Click a task to see its full command, working directory, PID, sample-based start
+time and CPU / memory, with separate copy actions. Expansion stays in place when
+new samples arrive. The process list remains available in its own disclosure.
+**History** opens resource charts; **Job history** shows recorded start / end times.
+Use **Servers** to return to the fleet. Terminal, Copy SSH and the **⋯** menu
+(Edit, First connection, Job history, Remove) belong to each server card.
+The copied SSH command is for PowerShell and preserves the configured SSH
+executable, config file, port, identity and resolved host-verification options.
+Refresh, Settings and language controls stay in the fixed footer.
+
+顶部三个汇总与 Mac 原版一致：训练中的 GPU 服务器、使用中的 GPU，以及在线服务器。
+纯 CPU 主机计入在线数；忙碌统计遵循设置中的利用率 / 显存阈值，暂停的主机和离线的
+GPU 容量不计入对应汇总。
+点击服务器卡片可展开 GPU 横条、运行任务和系统资源；继续展开任务可查看完整命令、
+目录、PID、开始时间、CPU / 内存，并分别复制命令、目录和 PID。自动刷新保留展开状态。
+进程列表可单独展开。「历史」查看资源曲线，「任务记录」查看运行记录及起止时间，
+点击「返回服务器」回到列表。每张卡片保留终端、复制 SSH，以及 **⋯** 操作菜单。
+复制的 SSH 命令适用于 PowerShell，沿用配置的 SSH 程序、配置文件、端口、私钥和
+解析后的指纹校验选项。底部固定显示刷新状态、立即刷新、设置和语言切换。
+
+Settings are grouped into Monitoring, SSH connection and iPhone notifications.
+This Windows client always uses the light palette. Older settings containing a
+dark-theme preference still load their servers and connection settings; the
+obsolete theme field is ignored.
 设置按监控、SSH 连接和 iPhone 通知分组。Windows 版固定使用浅色；升级时忽略旧版
 保存的深色选项，继续保留服务器、SSH 配置与私钥路径。
 
