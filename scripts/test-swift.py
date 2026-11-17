@@ -9,6 +9,7 @@ import sys
 
 def main():
     tail = deque(maxlen=200)
+    failures = deque(maxlen=30)
     with subprocess.Popen(['swift', 'test', '--force-resolved-versions'],
                           cwd=Path(__file__).resolve().parents[1],
                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -16,9 +17,12 @@ def main():
         for line in process.stdout:
             print(line, end='', flush=True)
             tail.append(line)
+            if any(marker in line.lower() for marker in ('error:', 'xctassert', 'fatal error', 'failed', 'crashed')):
+                failures.append(line)
         code = process.wait()
     if code and os.environ.get('GITHUB_ACTIONS') == 'true':
-        message = ''.join(tail)[-60000:]
+        # GitHub truncates annotation text; put actual diagnostics before routine output.
+        message = (''.join(failures)[:3000] + '\nFinal output:\n' + ''.join(tail)[-900:])[:4000]
         escaped = message.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
         print('::error title=Swift verification failed::' + escaped, flush=True)
     return code
