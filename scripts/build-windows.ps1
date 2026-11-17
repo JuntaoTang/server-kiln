@@ -2,6 +2,7 @@ param(
     [ValidateSet('Debug', 'Release')][string]$Configuration = 'Release',
     [ValidateSet('win-x64', 'win-arm64')][string]$Runtime = 'win-x64',
     [switch]$Package,
+    [switch]$Snapshots,
     [switch]$SkipTests
 )
 $ErrorActionPreference = 'Stop'
@@ -20,6 +21,14 @@ try {
         $smokeApplication = Join-Path $repositoryRoot "Sources\ServerKiln.Windows\bin\$Configuration\net10.0-windows\ServerKiln.dll"
         dotnet $smokeApplication --smoke-test
         if ($LASTEXITCODE -ne 0) { throw 'WPF template and layout smoke test failed.' }
+    }
+    if ($Snapshots) {
+        $application = Join-Path $repositoryRoot "Sources\ServerKiln.Windows\bin\$Configuration\net10.0-windows\ServerKiln.dll"
+        foreach ($language in @('en', 'zh')) {
+            $screenshots = Join-Path $repositoryRoot "build\windows\screenshots\$language"
+            dotnet $application --snapshot $screenshots --language $language
+            if ($LASTEXITCODE -ne 0) { throw "Snapshot generation failed for $language" }
+        }
     }
     if ($Package) {
         $version = (Get-Content -LiteralPath VERSION -Raw).Trim()
@@ -49,6 +58,8 @@ try {
         Compress-Archive -Path (Join-Path $output '*') -DestinationPath $archive -Force
         $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
         "$hash  $([System.IO.Path]::GetFileName($archive))" | Set-Content -LiteralPath "$archive.sha256" -Encoding ascii
+        python scripts/check-windows-package.py --directory (Join-Path $repositoryRoot 'dist') --version $version
+        if ($LASTEXITCODE -ne 0) { throw 'Packaged Windows artifact verification failed.' }
         Write-Output "Packaged $archive"
     }
 } finally { Pop-Location }

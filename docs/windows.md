@@ -46,11 +46,11 @@ confirmation. Afterwards, return to the app and refresh. If the private key is
 encrypted, unlock it using the matching Windows `ssh-agent`; entering its
 passphrase in a standalone terminal does not unlock background monitoring.
 
-Monitoring uses batch mode and strict host verification. Its primary trust store
-is `%LOCALAPPDATA%\ServerKiln\known_hosts`, with the standard
-`%USERPROFILE%\.ssh\known_hosts` as a fallback. The app deliberately overrides a
-config's `UserKnownHostsFile /dev/null` so a confirmed fingerprint persists;
-custom known-hosts files outside these two stores are not consulted. The first
+Monitoring uses batch mode and strict host verification. Valid custom
+`UserKnownHostsFile` paths are inherited unchanged, including paths with spaces,
+multiple files and host CA entries. If the effective store consists entirely of
+`/dev/null`, `NUL` or `none`, the app uses `%LOCALAPPDATA%\ServerKiln\known_hosts`
+with the standard `%USERPROFILE%\.ssh\known_hosts` as a fallback. The first
 connection asks for confirmation; background monitoring only accepts a known key.
 If a fingerprint changes, verify the change with the provider before updating
 that host's saved entry. The app never accepts or removes host keys automatically.
@@ -87,8 +87,8 @@ SSH configuration. A selected file is passed as a separate `-i` argument with
 
 导入后若提示「尚未确认服务器指纹」，点击「首次连接 / 确认指纹」，与云平台或管理员
 核对终端显示的 SHA256 指纹后确认，再回到应用刷新。不同端口分别确认。
-指纹保存到 `%LOCALAPPDATA%\ServerKiln\known_hosts`，即使原配置把
-`UserKnownHostsFile` 设为 `/dev/null` 也能保存；应用不会修改原 SSH 配置。
+有效的自定义指纹文件保持沿用；若配置完全丢弃指纹（例如 `/dev/null`），则回退到
+`%LOCALAPPDATA%\ServerKiln\known_hosts` 保存确认结果。应用不会修改原 SSH 配置。
 「编辑 → 私钥文件」可按服务器选择 key 文件；留空则继续沿用原来的 `IdentityFile`。
 服务器指纹用于确认连接对象，私钥用于登录身份认证，两者是不同的检查。
 跳板机和代理遵循所选 OpenSSH 配置；Mac 的 `nc -b en0`、Unix 路径或 WSL 内的
@@ -103,7 +103,8 @@ SSH configuration. A selected file is passed as a separate `-i` argument with
 - GPU utilization, VRAM, temperature and power; CPU, RAM, disk, network and processes.
 - Default busy rule: utilization at least 10% **or** VRAM at least 1024 MiB.
 - Debounced busy/idle and optional connection notifications, with per-host mute.
-- SQLite history with 24-hour, 7-day and 30-day charts, plus recent grouped jobs.
+- 10-minute live history in memory, plus SQLite 24-hour, 7-day and 30-day charts.
+- Aggregate / per-GPU history, utilization / VRAM selection and recent grouped jobs.
 - English / Chinese switching and light / dark themes.
 
 Settings are stored in `%LOCALAPPDATA%\ServerKiln\settings.json`, history and job
@@ -145,7 +146,7 @@ Delivery still depends on the relay, APNs and iPhone notification settings.
 
 ## Build and verify / 构建与验证
 
-Install a .NET 10 SDK, Python 3 and Windows OpenSSH. No NuGet packages are required
+Install the SDK specified by `global.json`, Python 3 and Windows OpenSSH. No NuGet packages are required
 for the source build or the test executable. Publishing self-contained packages
 may download Microsoft runtime packs.
 
@@ -155,13 +156,16 @@ python scripts/check-docs.py
 python scripts/check-public-tree.py --history
 python -m unittest discover -s Tests/RepositoryTests
 scripts/build-windows.ps1
-scripts/build-windows.ps1 -Package
+scripts/build-windows.ps1 -Package -Snapshots
 ```
 
 Build output: `Sources\ServerKiln.Windows\bin\Release\net10.0-windows\ServerKiln.exe`.
 Portable package: `dist\ServerKiln-<version>-win-x64.zip`.
 Run `ServerKiln.exe --demo --language zh` for synthetic preview data and isolated
 temporary storage. Demo mode performs no SSH monitoring or phone pushes.
+`--snapshot <directory> --language en` exports synthetic UI images. The build's
+`-Snapshots` switch generates both languages under `build/windows/screenshots/`.
+See the [feature matrix](windows-compatibility.md) and [validation record](windows-validation.md).
 
 The C# test executable exercises shared Swift/Windows parsing fixtures, real
 child-process pipe framing/cancellation with a fake SSH executable, history,

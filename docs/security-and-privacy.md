@@ -9,10 +9,11 @@ no private key import into the application is required. Arguments bypass a local
 shell. Unknown host fingerprints and encrypted keys must first be handled in
 an interactive terminal using the same OpenSSH client and agent.
 
-The first-connection action and monitoring share the app's persistent
-`%LOCALAPPDATA%\ServerKiln\known_hosts`, also consulting the standard Windows
-OpenSSH `~/.ssh/known_hosts`. This overrides discarded host-key storage such as
-`UserKnownHostsFile /dev/null`; other custom host-key stores are not inherited.
+The first-connection action and monitoring resolve the same effective OpenSSH
+configuration. Valid custom host-key stores are inherited, including multiple
+files and host CA entries. Discard-only stores such as `UserKnownHostsFile /dev/null`
+fall back to `%LOCALAPPDATA%\ServerKiln\known_hosts` plus the standard Windows
+OpenSSH `~/.ssh/known_hosts`.
 Interactive setup asks the user to verify an unknown fingerprint; background
 monitoring requires a trusted key. Changed host keys are never removed or
 accepted automatically. A per-server private-key override stores only the file

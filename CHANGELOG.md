@@ -15,6 +15,10 @@
   selection and distinct guidance for host-key, identity and file-permission errors.
 - User-level installation creates desktop and Start menu shortcuts; reopening a
   shortcut restores the running tray window through a local per-user channel.
+- Live ten-minute history, per-GPU utilization / VRAM charts and Mac-aligned range
+  buckets; valid custom OpenSSH trust stores remain inherited.
+- Pinned Windows SDK, synthetic snapshot export, isolated installer upgrade tests,
+  release artifact verification and automatic attachment to draft releases.
 
 ## 1.0.4
 

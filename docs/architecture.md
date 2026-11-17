@@ -30,6 +30,7 @@ flowchart LR
 | `Sources/ServerKiln.Windows.Core` | Windows SSH sessions, parsing, state, SQLite and Bark transport |
 | `Resources/Collector` | Generated Windows copy of the unchanged Swift collector |
 | `Tests/SharedFixtures` | Synthetic parsing contract exercised by both Swift and C# |
+| `global.json` | Pinned .NET SDK for Windows builds |
 
 `Monitor` owns sampling and session lifetime. An open panel requests the faster
 interval. `SnapshotParser` converts the collector's framed output to typed
@@ -52,3 +53,7 @@ implementation, with shared fixtures to check behavioral equivalence. Windows
 data is stored under LocalApplicationData. An optional Bark transport provides
 iPhone notifications independently of the Mac's CloudKit / Keychain integration.
 See the [Windows guide](windows.md) for the build and security boundaries.
+Windows live curves use a bounded in-memory ten-minute buffer; minute samples
+remain in SQLite for longer ranges. Per-GPU charts group by GPU before drawing
+and preserve missing-sample gaps. Valid SSH host-key stores remain inherited;
+native `ssh -G` detects discard-only configurations for a persistent fallback.

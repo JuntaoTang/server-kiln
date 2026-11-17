@@ -10,7 +10,7 @@ DIRECTORIES = {'.github', 'Config', 'Resources', 'Sources', 'Tests', 'Vendor', '
 ROOT_FILES = {'.gitignore', '.gitattributes', '.gitleaks.toml', 'Package.swift', 'Package.resolved', 'project.yml',
               'VERSION', 'BUILD_NUMBER', 'README.md', 'README.zh-CN.md', 'LICENSE',
               'THIRD_PARTY_NOTICES.md', 'CONTRIBUTING.md', 'SECURITY.md', 'SUPPORT.md',
-              'CODE_OF_CONDUCT.md', 'CHANGELOG.md'}
+              'CODE_OF_CONDUCT.md', 'CHANGELOG.md', 'global.json'}
 
 
 def private_path(name):

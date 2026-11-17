@@ -14,6 +14,10 @@ For the Windows client, use a .NET 10 SDK and Python 3, then follow the
 [Windows guide](docs/windows.md). Run `scripts/build-windows.ps1` for source
 builds and tests. Changes to collection or parsing should pass both desktop
 clients' shared fixture tests and the collector export check.
+The exact SDK is pinned in `global.json`. `scripts/build-windows.ps1 -Package -Snapshots`
+also validates the distributable ZIP and generates isolated synthetic screenshots.
+Review the [feature matrix](docs/windows-compatibility.md) and
+[validation record](docs/windows-validation.md) when changing platform behavior.
 
 ## Keep changes focused
 
