@@ -6,7 +6,7 @@ namespace ServerKiln.Windows;
 internal static class DialogLayout
 {
     public static TextBlock Label(string key, double top = 13) => new()
-    { Text = Localizer.Current[key], Margin = new Thickness(0, top, 0, 6), TextWrapping = TextWrapping.Wrap };
+    { Text = Localizer.Current[key], FontSize = 12, Margin = new Thickness(0, top, 0, 7), TextWrapping = TextWrapping.Wrap };
     public static TextBox Input(StackPanel panel, string key, string value)
     {
         panel.Children.Add(Label(key));
@@ -19,10 +19,20 @@ internal static class DialogLayout
         var check = new CheckBox { Content = Localizer.Current[key], IsChecked = value };
         panel.Children.Add(check); return check;
     }
+    public static (TextBox Left, TextBox Right) InputPair(StackPanel panel, string leftKey, string leftValue, string rightKey, string rightValue)
+    {
+        var row = new Grid();
+        row.ColumnDefinitions.Add(new ColumnDefinition()); row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(20) }); row.ColumnDefinitions.Add(new ColumnDefinition());
+        var left = new StackPanel(); var right = new StackPanel(); Grid.SetColumn(right, 2);
+        row.Children.Add(left); row.Children.Add(right); panel.Children.Add(row);
+        var first = Input(left, leftKey, leftValue); var second = Input(right, rightKey, rightValue);
+        ((TextBlock)left.Children[0]).MinHeight = 32; ((TextBlock)right.Children[0]).MinHeight = 32;
+        return (first, second);
+    }
     public static void Section(StackPanel panel, string key)
     {
-        var label = Label(key, 26); label.FontSize = 12; label.FontWeight = FontWeights.SemiBold;
-        label.SetResourceReference(TextBlock.ForegroundProperty, "AccentBrush"); panel.Children.Add(label);
+        var label = Label(key, 26); label.FontSize = 13; label.FontWeight = FontWeights.SemiBold;
+        panel.Children.Add(label);
     }
     public static void Help(StackPanel panel, string key)
     {
@@ -33,7 +43,7 @@ internal static class DialogLayout
     {
         window.SetResourceReference(FrameworkElement.StyleProperty, typeof(Window));
         window.Icon = System.Windows.Application.Current.MainWindow?.Icon;
-        var root = new DockPanel { Margin = new Thickness(24, 14, 24, 20) };
+        var root = new DockPanel { Margin = new Thickness(28, 16, 28, 24) };
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 18, 0, 0) };
         DockPanel.SetDock(buttons, Dock.Bottom); root.Children.Add(buttons);
         var fields = new StackPanel();
@@ -45,7 +55,7 @@ internal static class DialogLayout
     public static Button Button(StackPanel panel, string key, RoutedEventHandler click, bool primary = false)
     {
         var button = new Button { Content = Localizer.Current[key], Margin = new Thickness(8, 0, 0, 0), MinWidth = 90 };
-        if (primary) button.SetResourceReference(Control.ForegroundProperty, "AccentBrush");
+        if (primary) button.SetResourceReference(FrameworkElement.StyleProperty, "PrimaryButton");
         button.Click += click; panel.Children.Add(button); return button;
     }
 }
@@ -124,25 +134,40 @@ public sealed class ImportWindow : Window
 
 public sealed class SettingsWindow : Window
 {
+    private readonly TabControl tabs;
+
+    internal void RenderPagesForSmokeTest()
+    {
+        foreach (TabItem tab in tabs.Items) { tabs.SelectedItem = tab; UpdateLayout(); }
+    }
+
     public SettingsWindow()
     {
         var app = App.Instance;
         var prefs = app.Preferences;
         Title = "ServerKiln · " + Localizer.Current["Settings"];
-        Width = 660; Height = 780; MinHeight = 500; MinWidth = 580;
+        Width = 660; Height = 680; MinHeight = 500; MinWidth = 580;
         var (fields, buttons) = DialogLayout.Build(this);
-        DialogLayout.Section(fields, "General");
-        var background = DialogLayout.Input(fields, "BackgroundInterval", prefs.BackgroundIntervalSeconds.ToString());
-        var foreground = DialogLayout.Input(fields, "ForegroundInterval", prefs.ForegroundIntervalSeconds.ToString());
-        var utilization = DialogLayout.Input(fields, "UtilThreshold", prefs.Policy.UtilizationThreshold.ToString(CultureInfo.InvariantCulture));
-        var memory = DialogLayout.Input(fields, "MemoryThreshold", prefs.Policy.MemoryThresholdMiB.ToString(CultureInfo.InvariantCulture));
-        var debounce = DialogLayout.Input(fields, "Debounce", prefs.DebounceCount.ToString());
-        var retention = DialogLayout.Input(fields, "Retention", prefs.HistoryRetentionDays.ToString());
+        var root = (DockPanel)Content;
+        root.Children.RemoveAt(root.Children.Count - 1);
+        tabs = new TabControl(); root.Children.Add(tabs);
+        StackPanel Page(string key)
+        {
+            var page = new StackPanel { Margin = new Thickness(0, 7, 12, 0) };
+            tabs.Items.Add(new TabItem { Header = Localizer.Current[key], Content = new ScrollViewer { Content = page, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled } });
+            return page;
+        }
+        fields = Page("General");
+        var (background, foreground) = DialogLayout.InputPair(fields, "BackgroundInterval", prefs.BackgroundIntervalSeconds.ToString(), "ForegroundInterval", prefs.ForegroundIntervalSeconds.ToString());
+        var (utilization, memory) = DialogLayout.InputPair(fields, "UtilThreshold", prefs.Policy.UtilizationThreshold.ToString(CultureInfo.InvariantCulture), "MemoryThreshold", prefs.Policy.MemoryThresholdMiB.ToString(CultureInfo.InvariantCulture));
+        var (debounce, retention) = DialogLayout.InputPair(fields, "Debounce", prefs.DebounceCount.ToString(), "Retention", prefs.HistoryRetentionDays.ToString());
+        DialogLayout.Section(fields, "Notifications");
         var idle = DialogLayout.Check(fields, "NotifyIdle", prefs.NotifyOnIdle);
         var busy = DialogLayout.Check(fields, "NotifyBusy", prefs.NotifyOnBusy);
         var connection = DialogLayout.Check(fields, "NotifyConnection", prefs.NotifyOnConnection);
         var login = DialogLayout.Check(fields, "Login", !app.Demo && StartupService.Enabled);
         login.IsEnabled = !app.Demo;
+        fields = Page("SshSettings");
         var sshConfig = DialogLayout.Input(fields, "SshConfig", prefs.SshConfigPath);
         var browseConfig = new Button { Content = Localizer.Current["Browse"], HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 5, 0, 0) };
         browseConfig.Click += (_, _) => { var picker = new OpenFileDialog { CheckFileExists = true }; if (picker.ShowDialog(this) == true) sshConfig.Text = picker.FileName; };
@@ -151,7 +176,7 @@ public sealed class SettingsWindow : Window
         var browseExe = new Button { Content = Localizer.Current["Browse"], HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 5, 0, 0) };
         browseExe.Click += (_, _) => { var picker = new OpenFileDialog { CheckFileExists = true, Filter = "OpenSSH client|ssh.exe|Programs|*.exe" }; if (picker.ShowDialog(this) == true) sshExe.Text = picker.FileName; };
         fields.Children.Add(browseExe);
-        DialogLayout.Section(fields, "Phone");
+        fields = Page("Phone");
         DialogLayout.Help(fields, "PhoneHelp");
         var barkEnabled = DialogLayout.Check(fields, "BarkEnabled", prefs.BarkEnabled);
         var barkServer = DialogLayout.Input(fields, "BarkServer", prefs.BarkServer);

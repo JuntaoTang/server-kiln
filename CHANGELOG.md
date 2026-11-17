@@ -2,6 +2,9 @@
 
 ## Unreleased — Windows client
 
+- Simplified Windows dashboard with a quiet sidebar, unified metrics, separate
+  job history, segmented chart controls and grouped settings. Both themes share
+  consistent controls; new installs default to light mode and saved choices remain.
 - Independent .NET 10 / WPF tray client with native Windows OpenSSH sessions,
   GPU/CPU monitoring, SQLite history, recent jobs and debounced notifications.
 - Optional iPhone notifications through Bark with a DPAPI-protected device key.

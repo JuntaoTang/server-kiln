@@ -19,6 +19,26 @@ public partial class MainWindow : Window
         InitializeComponent();
         DataContext = AppState.ViewModel;
         AppState.ViewModel.SelectionChanged += () => { historyServer = null; RefreshHistoryIfVisible(); };
+        StateChanged += (_, _) => UpdateCaption();
+        Localizer.Current.PropertyChanged += (_, _) => UpdateCaption();
+        UpdateCaption();
+    }
+
+    private void MinimizeWindow(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+    private void MaximizeWindow(object sender, RoutedEventArgs e) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+    private void HideWindow(object sender, RoutedEventArgs e) => Close();
+    private void UpdateCaption()
+    {
+        MaximizeButton.Content = WindowState == WindowState.Maximized ? "\uE923" : "\uE922";
+        MaximizeButton.ToolTip = Localizer.Current[WindowState == WindowState.Maximized ? "Restore" : "Maximize"];
+        System.Windows.Automation.AutomationProperties.SetName(MaximizeButton, (string)MaximizeButton.ToolTip);
+    }
+    private void OpenServerMenu(object sender, RoutedEventArgs e)
+    {
+        var button = (Button)sender;
+        button.ContextMenu.PlacementTarget = button;
+        button.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+        button.ContextMenu.IsOpen = true;
     }
 
     private void WindowClosing(object? sender, CancelEventArgs e)
@@ -140,13 +160,19 @@ public partial class MainWindow : Window
 
     private void UpdateHistoryControls()
     {
-        void Select(Button button, bool selected) => button.SetResourceReference(Control.BorderBrushProperty, selected ? "AccentBrush" : "BorderBrush");
+        void Select(Button button, bool selected)
+        {
+            button.SetResourceReference(Control.BackgroundProperty, selected ? "SurfaceBrush" : "TransparentBrush");
+            button.SetResourceReference(Control.ForegroundProperty, selected ? "AccentBrush" : "MutedBrush");
+            button.FontWeight = selected ? FontWeights.SemiBold : FontWeights.Normal;
+        }
         foreach (var button in new[] { RangeLive, RangeDay, RangeWeek, RangeMonth })
             Select(button, (string)button.Tag == historyRange.ToString());
         Select(ModeOverall, !historyPerGpu); Select(ModePerGpu, historyPerGpu);
         Select(MetricUtilization, historyMetric == GpuHistoryMetric.Utilization); Select(MetricMemory, historyMetric == GpuHistoryMetric.Memory);
         GpuMetricPicker.Visibility = historyPerGpu ? Visibility.Visible : Visibility.Collapsed;
-        HistoryHint.Text = Localizer.Current[historyRange == HistoryRange.TenMinutes ? "LiveHistoryHint" : "StoredHistoryHint"];
+        HistoryHint.Text = Localizer.Current[historyRange == HistoryRange.TenMinutes ? "LiveHistoryCaption" : "StoredHistoryCaption"];
+        HistoryHint.ToolTip = Localizer.Current[historyRange == HistoryRange.TenMinutes ? "LiveHistoryHint" : "StoredHistoryHint"];
     }
 
     public async Task CaptureSnapshotsAsync(string directory)
@@ -158,6 +184,9 @@ public partial class MainWindow : Window
         AppState.SavePreferences(AppState.Preferences with { Theme = "dark" });
         DetailTabs.SelectedIndex = 0;
         await SaveSnapshotAsync(Path.Combine(directory, "overview-dark.png"));
+        AppState.SavePreferences(AppState.Preferences with { Theme = "light" });
+        await SaveSnapshotAsync(Path.Combine(directory, "overview-light.png"));
+        AppState.SavePreferences(AppState.Preferences with { Theme = "dark" });
         DetailTabs.SelectedItem = HistoryTab; historyRange = HistoryRange.Day; historyPerGpu = true; historyMetric = GpuHistoryMetric.Utilization;
         RefreshHistoryIfVisible(force: true);
         await SaveSnapshotAsync(Path.Combine(directory, "history-per-gpu-dark.png"));
@@ -165,22 +194,30 @@ public partial class MainWindow : Window
         historyRange = HistoryRange.TenMinutes; historyMetric = GpuHistoryMetric.Memory;
         RefreshHistoryIfVisible(force: true);
         await SaveSnapshotAsync(Path.Combine(directory, "history-live-light.png"));
+        Width = MinWidth; Height = MinHeight;
+        DetailTabs.SelectedIndex = 0;
+        await SaveSnapshotAsync(Path.Combine(directory, "overview-compact-light.png"));
+        var settings = new SettingsWindow { Owner = this };
+        settings.Show();
+        await SaveSnapshotAsync(Path.Combine(directory, "settings-light.png"), settings);
+        settings.Close();
     }
 
-    private async Task SaveSnapshotAsync(string path)
+    private async Task SaveSnapshotAsync(string path, Window? window = null)
     {
-        UpdateLayout();
+        window ??= this;
+        window.UpdateLayout();
         await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
-        var root = (FrameworkElement)Content;
+        var root = (FrameworkElement)window.Content;
+        var bounds = new Rect(0, 0, root.ActualWidth + root.Margin.Left + root.Margin.Right, root.ActualHeight + root.Margin.Top + root.Margin.Bottom);
         var visual = new DrawingVisual();
         using (var context = visual.RenderOpen())
         {
-            var bounds = new Rect(0, 0, root.ActualWidth + root.Margin.Left + root.Margin.Right, root.ActualHeight + root.Margin.Top + root.Margin.Bottom);
-            context.DrawRectangle(Background, null, bounds);
-            context.DrawRectangle(new VisualBrush(root), null, new Rect(root.Margin.Left, root.Margin.Top, root.ActualWidth, root.ActualHeight));
+            context.DrawRectangle(window.Background, null, bounds);
         }
-        var image = new RenderTargetBitmap((int)Math.Ceiling(ActualWidth), (int)Math.Ceiling(ActualHeight - 40), 96, 96, PixelFormats.Pbgra32);
+        var image = new RenderTargetBitmap((int)Math.Ceiling(bounds.Width), (int)Math.Ceiling(bounds.Height), 96, 96, PixelFormats.Pbgra32);
         image.Render(visual);
+        image.Render(root);
         var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(image));
         using var file = File.Create(path); encoder.Save(file);
     }
@@ -205,10 +242,14 @@ public partial class MainWindow : Window
                                 RefreshHistoryIfVisible(force: true); UpdateLayout();
                             }
                 }
-                var settings = new SettingsWindow { Owner = this }; settings.Show(); settings.UpdateLayout(); settings.Close();
+                DetailTabs.SelectedItem = JobsTab; UpdateLayout();
+                var settings = new SettingsWindow { Owner = this }; settings.Show(); settings.RenderPagesForSmokeTest(); settings.Close();
                 var editor = new ServerEditor(null) { Owner = this }; editor.Show(); editor.UpdateLayout(); editor.Close();
                 var importer = new ImportWindow([new SshHostEntry("fixture", "gpu.example.com", "researcher", 22, "synthetic")]) { Owner = this };
                 importer.Show(); importer.UpdateLayout(); importer.Close();
+                OpenServerMenu(ServerMenuButton, new RoutedEventArgs());
+                if (!ServerMenuButton.ContextMenu.IsOpen) throw new InvalidOperationException("Server actions menu did not open.");
+                ServerMenuButton.ContextMenu.IsOpen = false;
                 await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
             }
         Width = MinWidth; Height = MinHeight;
@@ -226,7 +267,16 @@ public partial class MainWindow : Window
         UpdateLayout();
         DetailTabs.SelectedItem = HistoryTab; RefreshHistoryIfVisible(force: true); UpdateLayout();
         await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
-        Hide();
+        MaximizeWindow(this, new RoutedEventArgs());
+        if (WindowState != WindowState.Maximized) throw new InvalidOperationException("Window did not maximize.");
+        MaximizeWindow(this, new RoutedEventArgs());
+        if (WindowState != WindowState.Normal) throw new InvalidOperationException("Window did not restore.");
+        MinimizeWindow(this, new RoutedEventArgs());
+        if (!await AppState.ReactivateForSmokeTestAsync()) throw new InvalidOperationException("Minimized window could not be activated.");
+        await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+        if (WindowState != WindowState.Normal) throw new InvalidOperationException("Minimized window did not restore.");
+        HideWindow(this, new RoutedEventArgs());
+        if (IsVisible) throw new InvalidOperationException("Close did not hide the window to the tray.");
         if (!await AppState.ReactivateForSmokeTestAsync()) throw new InvalidOperationException("Shortcut activation failed.");
         await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         if (!IsVisible || WindowState != WindowState.Normal) throw new InvalidOperationException("Shortcut did not restore the main window.");

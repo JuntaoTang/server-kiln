@@ -27,7 +27,7 @@ public sealed class HistoryChart : FrameworkElement
         base.OnRender(context);
         if (ActualWidth < 100 || ActualHeight < 100 || until <= since) return;
         var textBrush = (Brush)FindResource("MutedBrush");
-        var border = new Pen((Brush)FindResource("BorderBrush"), 1);
+        var border = new Pen((Brush)FindResource("ChartGridBrush"), 1);
         var background = ((SolidColorBrush)FindResource("BackgroundBrush")).Color;
         var palette = background.R + background.G + background.B > 384 ? LightPalette : Palette;
         var series = new List<(HistoryPoint[] Points, Func<HistoryPoint, double?> Value, Color Color, string Label)>();
@@ -53,8 +53,12 @@ public sealed class HistoryChart : FrameworkElement
         var top = 16 + legendRows * 18;
         var bounds = new Rect(42, top, ActualWidth - 60, Math.Max(40, ActualHeight - top - 34));
         for (var index = 0; index < series.Count; index++)
-            Text("● " + series[index].Label, bounds.Left + index % legendColumns * 110, index / legendColumns * 18,
-                new SolidColorBrush(series[index].Color));
+        {
+            var x = bounds.Left + index % legendColumns * 110;
+            var y = index / legendColumns * 18;
+            context.DrawRoundedRectangle(new SolidColorBrush(series[index].Color), null, new Rect(x, y + 4, 12, 3), 1.5, 1.5);
+            Text(series[index].Label, x + 19, y);
+        }
         for (var n = 0; n <= 4; n++)
         {
             var y = bounds.Top + n * bounds.Height / 4;
@@ -72,7 +76,7 @@ public sealed class HistoryChart : FrameworkElement
         context.PushClip(new RectangleGeometry(bounds));
         foreach (var (samples, getValue, color, _) in series)
         {
-            var pen = new Pen(new SolidColorBrush(color), 1.8);
+            var pen = new Pen(new SolidColorBrush(color), 2) { StartLineCap = PenLineCap.Round, EndLineCap = PenLineCap.Round, LineJoin = PenLineJoin.Round };
             Point? previous = null;
             DateTimeOffset? previousTime = null;
             foreach (var sample in samples)

@@ -236,14 +236,21 @@ public partial class App : System.Windows.Application
     {
         var light = theme == "light";
         void Brush(string key, string value) => Resources[key] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(value));
-        Brush("BackgroundBrush", light ? "#F4F3EF" : "#121416");
-        Brush("SurfaceBrush", light ? "#FFFFFF" : "#1C1F22");
-        Brush("RaisedBrush", light ? "#EAECE9" : "#25292D");
-        Brush("BorderBrush", light ? "#CFD3CF" : "#343A3E");
-        Brush("TextBrush", light ? "#202827" : "#F1EFEA");
-        Brush("MutedBrush", light ? "#596863" : "#A1A9AE");
-        Brush("AccentBrush", light ? "#9B4B20" : "#E5A069");
-        Brush("GreenBrush", light ? "#287A55" : "#83C5A3");
+        Brush("BackgroundBrush", light ? "#F7F8FA" : "#171C24");
+        Brush("SidebarBrush", light ? "#F0F2F6" : "#12171E");
+        Brush("SurfaceBrush", light ? "#FFFFFF" : "#1E2530");
+        Brush("RaisedBrush", light ? "#EBEEF4" : "#293241");
+        Brush("BorderBrush", light ? "#E0E5ED" : "#303A49");
+        Brush("ChartGridBrush", light ? "#ECF0F5" : "#2A3341");
+        Brush("TextBrush", light ? "#202B3C" : "#E7EDF5");
+        Brush("MutedBrush", light ? "#56677D" : "#99A7BA");
+        Brush("AccentBrush", light ? "#4964CF" : "#A7B6FF");
+        Brush("AccentSoftBrush", light ? "#E3E9FC" : "#27344D");
+        Brush("PrimaryTextBrush", light ? "#FFFFFF" : "#15213E");
+        Brush("GreenBrush", light ? "#1B7666" : "#7BC6B2");
+        Brush("BusyBrush", light ? "#895822" : "#E3B776");
+        Brush("DangerBrush", light ? "#BF4D51" : "#F1A1A5");
+        Brush("DangerSoftBrush", light ? "#FCEEEF" : "#35252E");
         if (MainWindow is MainWindow window) window.RefreshHistoryIfVisible();
     }
 

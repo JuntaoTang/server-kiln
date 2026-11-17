@@ -56,9 +56,9 @@ public sealed class ServerViewModel(ServerConfig config) : ObservableObject
     public string Name => Config.Name;
     public string Target => Config.Target;
     public string Status => !Config.Enabled ? Localizer.Current["Disabled"] : Localizer.Current.Activity(Reading.Activity);
-    public Brush StatusBrush => new SolidColorBrush(!Config.Enabled ? Color.FromRgb(140, 149, 156) : Reading.Activity switch
-    { ServerActivity.Busy => Color.FromRgb(229, 160, 105), ServerActivity.Idle or ServerActivity.CpuOnly => Color.FromRgb(131, 197, 163),
-        ServerActivity.Offline => Color.FromRgb(239, 133, 133), _ => Color.FromRgb(161, 169, 174) });
+    public Brush StatusBrush => (Brush)System.Windows.Application.Current.FindResource(!Config.Enabled ? "MutedBrush" : Reading.Activity switch
+    { ServerActivity.Busy => "BusyBrush", ServerActivity.Idle or ServerActivity.CpuOnly => "GreenBrush",
+        ServerActivity.Offline => "DangerBrush", _ => "MutedBrush" });
     private ServerSnapshot? Snapshot => Reading.Snapshot;
     public string Summary => Snapshot is null ? "—" : Snapshot.IsGpuServer
         ? $"{Snapshot.Gpus.Length} GPU · {DisplayFormat.Mib(Snapshot.Gpus.Sum(g => g.MemoryUsedMiB))}"
@@ -66,7 +66,7 @@ public sealed class ServerViewModel(ServerConfig config) : ObservableObject
     public string Subtitle => Snapshot is null ? Target + " · " + Status
         : $"{Snapshot.System.Hostname} · {Snapshot.System.Os} · {Localizer.Current["Uptime"]} {DisplayFormat.Duration(Snapshot.System.UptimeSeconds)}";
     public string Cpu => DisplayFormat.Percent(Snapshot?.System.CpuUsage);
-    public string Cores => Snapshot?.System.CpuCores is { } cores ? $"{cores} cores" : "—";
+    public string Cores => Snapshot?.System.CpuCores is { } cores ? $"{cores} {Localizer.Current["Cores"]}" : "—";
     public string Ram => DisplayFormat.Percent(Snapshot?.System.MemFraction);
     public string RamSize => DisplayFormat.Mib(Snapshot?.System.MemTotalKB / 1024);
     public string Disk => DisplayFormat.Percent(Snapshot?.System.DiskFraction);
@@ -89,6 +89,8 @@ public sealed class ServerViewModel(ServerConfig config) : ObservableObject
     public Visibility ErrorVisibility => string.IsNullOrEmpty(Error) ? Visibility.Collapsed : Visibility.Visible;
     public string GpuMessage => Snapshot is null ? Localizer.Current["NoData"] : Snapshot.GpuError
         ?? (Snapshot.IsGpuServer ? "" : Localizer.Current["NoGpu"]);
+    public Visibility GpuVisibility => Snapshot?.IsGpuServer == true ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility GpuMessageVisibility => string.IsNullOrEmpty(GpuMessage) ? Visibility.Collapsed : Visibility.Visible;
     public GpuViewModel[] Gpus => Snapshot?.Gpus.Select(g => new GpuViewModel(g)).ToArray() ?? [];
     public ProcessViewModel[] Processes => Snapshot?.Tasks.Concat(Snapshot.Processes).DistinctBy(p => p.Pid)
         .Select(p => new ProcessViewModel(p)).ToArray() ?? [];

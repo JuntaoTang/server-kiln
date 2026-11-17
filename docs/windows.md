@@ -107,6 +107,17 @@ SSH configuration. A selected file is passed as a separate `-i` argument with
 - Aggregate / per-GPU history, utilization / VRAM selection and recent grouped jobs.
 - English / Chinese switching and light / dark themes.
 
+The dashboard uses a compact server sidebar and separate Overview, Recent jobs
+and History tabs. Terminal and refresh stay in the header; **Edit**, **Remove**
+and **First connection** are in its **⋯** menu. Settings, language and appearance
+controls sit at the bottom of the sidebar. Settings are grouped into Monitoring,
+SSH connection and iPhone notifications. New installations start in light mode;
+an existing appearance preference is retained.
+
+左侧选择服务器，右侧分别查看资源总览、近期任务和资源历史。顶部保留终端与刷新，
+编辑、移除和首次连接收进 **⋯** 菜单；设置、语言及深浅色切换位于侧栏底部。
+设置按监控、SSH 连接和 iPhone 通知分组。新安装默认浅色，已有主题选择会保留。
+
 Settings are stored in `%LOCALAPPDATA%\ServerKiln\settings.json`, history and job
 metadata in `history.sqlite`. Commands, usernames and working directories are
 sensitive; review them before sharing this directory. Normal SSH private keys
