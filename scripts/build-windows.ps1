@@ -53,6 +53,7 @@ try {
             }
         }
         Copy-Item -LiteralPath (Join-Path $repositoryRoot 'scripts\install-windows.ps1') -Destination (Join-Path $output 'install.ps1')
+        Copy-Item -LiteralPath (Join-Path $repositoryRoot 'scripts\WindowsShortcuts.cs') -Destination (Join-Path $output 'WindowsShortcuts.cs')
         Copy-Item -LiteralPath (Join-Path $repositoryRoot 'docs\windows.md') -Destination (Join-Path $output 'WINDOWS.md')
         $archive = Join-Path $repositoryRoot "dist\ServerKiln-$version-$Runtime.zip"
         Compress-Archive -Path (Join-Path $output '*') -DestinationPath $archive -Force

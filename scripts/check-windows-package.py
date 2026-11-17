@@ -10,7 +10,7 @@ import zipfile
 
 REQUIRED = {'ServerKiln.exe', 'ServerKiln.dll', 'ServerKiln.Windows.Core.dll',
             'ServerKiln.runtimeconfig.json', 'coreclr.dll', 'PresentationFramework.dll',
-            'LICENSE', 'THIRD_PARTY_NOTICES.md', 'install.ps1', 'WINDOWS.md',
+            'LICENSE', 'THIRD_PARTY_NOTICES.md', 'install.ps1', 'WindowsShortcuts.cs', 'WINDOWS.md',
             'Licenses/dotnet-LICENSE.txt', 'Licenses/dotnet-ThirdPartyNotices.txt'}
 
 

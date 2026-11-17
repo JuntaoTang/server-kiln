@@ -40,9 +40,10 @@ class WindowsInstallTests(unittest.TestCase):
             for folder in (desktop, menu):
                 link = folder / 'ServerKiln.lnk'
                 quoted = str(link).replace("'", "''")
+                helper = str(SCRIPT.parent / 'WindowsShortcuts.cs').replace("'", "''")
                 inspect = ("[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false); "
-                           "$shell = New-Object -ComObject WScript.Shell; "
-                           f"$link = $shell.CreateShortcut('{quoted}'); "
+                           f"Add-Type -Path '{helper}'; "
+                           f"$link = [ServerKilnSetup.Shortcuts]::Inspect('{quoted}'); "
                            "[PSCustomObject]@{target=$link.TargetPath;directory=$link.WorkingDirectory;arguments=$link.Arguments} | ConvertTo-Json -Compress")
                 result = subprocess.run(['powershell.exe', '-NoProfile', '-Command', inspect], check=True,
                                         capture_output=True, encoding='utf-8')
