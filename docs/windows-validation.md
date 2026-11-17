@@ -51,6 +51,20 @@ parser now normalizes CRLF before splitting lines; the shared fixture caught the
 previous empty host / process results for that input. A workflow run URL and its
 results must be checked before marking remote macOS / Windows CI as passed.
 
+## Remote CI
+
+On 2026-11-17, [CI run 44013548247](https://github.com/JuntaoTang/server-kiln/actions/runs/44013548247)
+passed both jobs for source commit `d439399`:
+
+- Windows: repository / installer checks, C# tests, WPF smoke rendering, bilingual
+  screenshots, self-contained ZIP verification and artifact upload.
+- macOS 15: repository checks, source / history secret scan, all 47 Swift tests,
+  universal arm64 / x86_64 app build, both localization resources and ad-hoc
+  signature verification.
+
+This verifies the automated Mac regression checks, including the CRLF parser fix.
+It does not replace the device checks below or validate Apple distribution signing.
+
 ## Real-server probe
 
 The optional diagnostic command uses a server already configured by the user:
@@ -86,7 +100,6 @@ must not be inferred from automated fixture success:
 | Windows notification delivery | Exercise an actual busy / idle transition and OS notification settings |
 | Install / update / remove | Keep settings, keys and fingerprints; shortcuts and optional login startup point to the intended executable |
 | Windows 10 / ARM64 | Device-specific build and runtime acceptance before expanding support claims |
-| macOS regression | Successful CI run of Swift tests, universal app packaging, resources and code-sign validation |
 
 Windows app signing, automatic updates and original iPhone interoperability are
 outside the initial desktop support claim. The release workflow attaches verified
