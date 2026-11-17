@@ -537,6 +537,10 @@ struct PhoneSettings: View {
                                info: String(appLocalized: "额外部署一把可开 shell 的密钥（禁止一切端口 / agent 转发）。iPhone 每次打开终端前需要 Face ID。"),
                                isOn: $withTerminal)
             }
+            if phone.switchedOffOnPhone {
+                Label(String(appLocalized: "iPhone 已在「同步来源」中关闭这台 Mac，不会推送通知"), systemImage: "iphone.slash")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             if let error = phone.lastError {
                 Label(error, systemImage: "exclamationmark.triangle.fill").font(.caption).foregroundStyle(.orange)
             }

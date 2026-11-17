@@ -5441,6 +5441,86 @@
           }
         }
       }
+    },
+    "iPhone 已在「同步来源」中关闭这台 Mac，不会推送通知": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An iPhone switched this Mac off in Sync sources, so it sends no notifications"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhone 已在「同步来源」中关闭这台 Mac，不会推送通知"
+          }
+        }
+      }
+    },
+    "没有可信的主机密钥": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No trusted host key"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有可信的主机密钥"
+          }
+        }
+      }
+    },
+    "认证失败：服务器拒绝了密码或密钥": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authentication failed: the server rejected the password or key"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "认证失败：服务器拒绝了密码或密钥"
+          }
+        }
+      }
+    },
+    "服务器未开启密码登录，请改用密钥": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server doesn't accept passwords; use a key"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器未开启密码登录，请改用密钥"
+          }
+        }
+      }
+    },
+    "对方没有完成 SSH 握手": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server didn't complete the SSH handshake"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方没有完成 SSH 握手"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.6
+
+See [release notes](docs/releases/v1.0.6.md).
+
 ## 1.0.4
 
 See [release notes](docs/releases/v1.0.4.md).

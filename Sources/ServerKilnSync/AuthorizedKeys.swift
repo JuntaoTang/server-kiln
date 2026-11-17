@@ -94,6 +94,12 @@ public enum AuthorizedKeys {
         """
     }
 
+    /// Runs a multi-line script as one SSH exec command, whatever the login
+    /// shell (fish and csh included): the Mac feeds scripts on stdin instead.
+    public static func piped(_ script: String) -> String {
+        "echo \(Data(script.utf8).base64EncodedString()) | base64 -d | sh"
+    }
+
     /// Removes this server's lines; drops the collector once no lines of ours remain.
     public static func revokeScript(server: UUID) -> String {
         """

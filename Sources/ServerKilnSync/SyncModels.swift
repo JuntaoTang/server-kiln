@@ -23,9 +23,16 @@ public struct SyncedServer: Codable, Identifiable, Hashable, Sendable {
     public var order: Int
     public var muted: Bool
     public var deployedAt: Date
+    /// Added on an iPhone (see `LocalServerStore`) rather than deployed by
+    /// a Mac. Such servers sync between iPhones only; Macs never read them.
+    public var local: Bool?
+    /// On a server added on an iPhone: the collect-only key installed next
+    /// to the login, so the widget can poll it too (`ReadOnlyKey`).
+    public var readOnlyKey: ReadOnlyKeyInstall?
 
     public init(id: UUID, name: String, endpoint: SSHEndpoint, roles: Set<KeyRole>, order: Int = 0,
-                muted: Bool = false, deployedAt: Date = Date()) {
+                muted: Bool = false, deployedAt: Date = Date(), local: Bool? = nil,
+                readOnlyKey: ReadOnlyKeyInstall? = nil) {
         self.id = id
         self.name = name
         self.endpoint = endpoint
@@ -33,25 +40,64 @@ public struct SyncedServer: Codable, Identifiable, Hashable, Sendable {
         self.order = order
         self.muted = muted
         self.deployedAt = deployedAt
+        self.local = local
+        self.readOnlyKey = readOnlyKey
     }
 
     public var hasTerminal: Bool { roles.contains(.terminal) }
+    public var isLocal: Bool { local == true }
 
     /// The same machine added on several Macs has different IDs but the
     /// same endpoint; the phone shows it once.
     public var endpointKey: String { "\(endpoint.user)@\(endpoint.host.lowercased()):\(endpoint.port)" }
 }
 
-/// Servers the iPhone muted, by `SyncedServer.endpointKey` so a machine
-/// added on several Macs is muted once. Shared via CloudKit; the Mac checks
-/// it before posting an event, so muted servers never create a push.
+/// What `ReadOnlyKey.install` put on a server.
+public struct ReadOnlyKeyInstall: Codable, Hashable, Sendable {
+    /// `ssh-ed25519 AAAA…` now in `authorized_keys`, pinned to `collect.sh`.
+    public var publicKey: String
+    /// `AuthorizedKeys.collectorVersion` of the `collect.sh` written with it.
+    public var collector: String
+
+    public init(publicKey: String, collector: String) {
+        self.publicKey = publicKey
+        self.collector = collector
+    }
+}
+
+/// The iPhone's notification choices, shared via CloudKit; the Mac checks
+/// them before posting an event, so muted servers and switched-off kinds
+/// never create a push.
+///
+/// Servers are muted by `SyncedServer.endpointKey`, so a machine added on
+/// several Macs is muted once. `disabledKinds` is nil in records written by
+/// iPhones before 1.0.6 (everything on).
 public struct NotificationPrefs: Codable, Hashable, Sendable {
     public var mutedEndpoints: Set<String>
+    public var disabledKinds: Set<ActivityEvent.Kind>?
+    /// Macs switched off in the iPhone's 同步来源 (by `macID`): the phones
+    /// ignore their lists and status, and they post no notifications. Nil in
+    /// records written before 1.0.6.
+    public var excludedMacs: Set<String>?
     public var updatedAt: Date
 
-    public init(mutedEndpoints: Set<String> = [], updatedAt: Date = Date()) {
+    public init(mutedEndpoints: Set<String> = [], disabledKinds: Set<ActivityEvent.Kind>? = nil,
+                excludedMacs: Set<String>? = nil, updatedAt: Date = Date()) {
         self.mutedEndpoints = mutedEndpoints
+        self.disabledKinds = disabledKinds
+        self.excludedMacs = excludedMacs
         self.updatedAt = updatedAt
+    }
+
+    /// Whether the Mac with this ID may notify the iPhones at all.
+    public func includes(mac macID: String) -> Bool {
+        !(excludedMacs?.contains(macID) ?? false)
+    }
+
+    /// Whether the Mac should post `kind` for `endpointKey`.
+    public func allows(_ kind: ActivityEvent.Kind, endpointKey: String?) -> Bool {
+        if let endpointKey, mutedEndpoints.contains(endpointKey) { return false }
+        return !(disabledKinds?.contains(kind) ?? false)
     }
 }
 
@@ -200,5 +246,19 @@ public struct RelayStatus: Codable, Hashable, Sendable {
             }
         }
         return out
+    }
+}
+
+/// Servers added on the iPhone, without a Mac, as every iPhone on the same
+/// Apple ID shares them through the CloudKit private database
+/// (`ServerList/phone-servers`, see `CloudStore`).
+public struct PhoneServerList: Codable, Hashable, Sendable {
+    public var servers: [SyncedServer]
+    /// Newest list wins between iPhones (adds, edits and deletions alike).
+    public var updatedAt: Date
+
+    public init(servers: [SyncedServer] = [], updatedAt: Date = .distantPast) {
+        self.servers = servers
+        self.updatedAt = updatedAt
     }
 }

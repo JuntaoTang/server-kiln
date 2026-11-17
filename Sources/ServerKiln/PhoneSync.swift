@@ -1,4 +1,6 @@
+import CryptoKit
 import Foundation
+import IOKit
 import Observation
 import ServerKilnCore
 import ServerKilnSSH
@@ -18,6 +20,8 @@ final class PhoneSync {
     private(set) var status: [UUID: String] = [:]
     private(set) var busy: Set<UUID> = []
     private(set) var account: CloudStore.AccountState?
+    /// An iPhone switched this Mac off in 同步来源: no notifications.
+    private(set) var switchedOffOnPhone = false
     /// Latest unresolved problem, cleared as soon as that area succeeds again.
     var lastError: String? { errors.sorted { $0.key.rawValue < $1.key.rawValue }.first?.value }
     private var errors: [ErrorArea: String] = [:]
@@ -47,13 +51,31 @@ final class PhoneSync {
 
     static let eventRetention: TimeInterval = 7 * 86400
 
-    /// Identifies this Mac's list in iCloud; stable across launches.
+    /// Identifies this Mac's list in iCloud; stable across launches and,
+    /// for installs from 1.0.6 on, across reinstalls too: derived from the
+    /// hardware UUID, so deleting and reinstalling the app no longer leaves
+    /// a second copy of this Mac on the iPhone. Existing installs keep theirs.
     @ObservationIgnored private lazy var macID: String = {
         if let id = defaults.string(forKey: "phoneMacID") { return id }
-        let id = UUID().uuidString.lowercased()
+        let id = Self.hardwareMacID() ?? UUID().uuidString.lowercased()
         defaults.set(id, forKey: "phoneMacID")
         return id
     }()
+
+    /// A UUID-shaped hash of `IOPlatformUUID` (the raw value is never stored).
+    static func hardwareMacID() -> String? {
+        let service = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPlatformExpertDevice"))
+        guard service != 0 else { return nil }
+        defer { IOObjectRelease(service) }
+        guard let raw = IORegistryEntryCreateCFProperty(service, "IOPlatformUUID" as CFString, kCFAllocatorDefault, 0)?
+            .takeRetainedValue() as? String, !raw.isEmpty else { return nil }
+        var bytes = Array(SHA256.hash(data: Data(("serverkiln-mac:" + raw).utf8)).prefix(16))
+        bytes[6] = (bytes[6] & 0x0f) | 0x50
+        bytes[8] = (bytes[8] & 0x3f) | 0x80
+        let uuid = UUID(uuid: (bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+                               bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15]))
+        return uuid.uuidString.lowercased()
+    }
 
     init(defaults d: UserDefaults) {
         defaults = d
@@ -73,6 +95,7 @@ final class PhoneSync {
 
     func refreshAccount() async {
         account = await cloud.accountState()
+        if let prefs = try? await cloud.fetchNotificationPrefs() { switchedOffOnPhone = !prefs.includes(mac: macID) }
     }
 
     /// Pushes the current collector to every deployed server whose copy is
@@ -270,7 +293,9 @@ final class PhoneSync {
         relayTask = Task {
             defer { relayTask = nil }
             do {
-                try await cloud.saveStatus(status, macID: macID)
+                // An iPhone removed this Mac (Settings → 同步来源); the relay
+                // registered it again, so put its server list back too.
+                if try await cloud.saveStatus(status, macID: macID) { schedulePublish(immediately: true) }
                 relayFailures = 0
                 clearError(.relay)
             } catch {
@@ -317,12 +342,18 @@ final class PhoneSync {
                 for attempt in 0..<5 {
                     guard pushEnabled, !Task.isCancelled else { return }
                     do {
-                        // Muted on the iPhone: drop it here, since the phone's
-                        // subscriptions deliberately have no server filter.
-                        if let key = pending.endpointKey,
-                           try await cloud.fetchNotificationPrefs()?.mutedEndpoints.contains(key) == true {
-                            pendingPushes[name] = nil
-                            return
+                        // Muted server or switched-off kind on the iPhone: drop
+                        // it here, since the phone's subscriptions deliberately
+                        // have no filter (and training started / finished
+                        // share one record type).
+                        if let prefs = try await cloud.fetchNotificationPrefs() {
+                            // Switched off in the iPhone's 同步来源: another Mac
+                            // (or nobody) sends it.
+                            switchedOffOnPhone = !prefs.includes(mac: macID)
+                            if switchedOffOnPhone || !prefs.allows(pending.event.kind, endpointKey: pending.endpointKey) {
+                                pendingPushes[name] = nil
+                                return
+                            }
                         }
                         if try await !cloud.wasPushed(name, previous: pending.previous) {
                             try await cloud.post(pending.event, recordName: name)

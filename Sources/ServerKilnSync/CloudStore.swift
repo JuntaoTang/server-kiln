@@ -11,9 +11,14 @@ import Security
 /// Layout (default zone, so no custom indexes are needed):
 /// - `ServerList/mac-<id>`: JSON `SyncedPayload` in `payload`, one record per
 ///   Mac so several Macs never overwrite each other; phones merge them.
-/// - `EventIdle` / `EventBusy` / `EventConnection`: one record per transition.
-///   The phone subscribes per record type, so each notification kind can be
-///   switched on and off without a queryable `kind` index.
+/// - `EventBusy` / `EventConnection`: one record per transition. Training
+///   started *and* finished both use `EventBusy` (`kind` tells them apart):
+///   Production never delivered pushes for `EventIdle` records (see
+///   docs/CloudKit/NotificationAudit-2026-11-17.md), while `EventBusy` does.
+///   Which kinds the user wants travels in `NotificationPrefs`; the Mac
+///   filters before posting.
+/// - `EventIdle`: written only by Macs before 1.0.6. Phones keep that
+///   subscription while 「训练结束」 is on, for those older Macs.
 public final class CloudStore: @unchecked Sendable {
     public static let containerID = "iCloud.cn.littleor.serverkiln"
     public static let shared = CloudStore()
@@ -25,10 +30,10 @@ public final class CloudStore: @unchecked Sendable {
         case busy = "EventBusy"
         case connection = "EventConnection"
 
+        /// The record type an event is posted as.
         public init(_ kind: ActivityEvent.Kind) {
             switch kind {
-            case .idle: self = .idle
-            case .busy: self = .busy
+            case .idle, .busy: self = .busy
             case .offline, .online: self = .connection
             }
         }
@@ -118,21 +123,49 @@ public final class CloudStore: @unchecked Sendable {
     }
 
     /// Adds this Mac to the `macs` index (idempotent, retried on races).
-    private func register(_ macID: String) async throws {
+    /// Returns true when it wasn't listed, e.g. an iPhone removed it.
+    @discardableResult
+    private func register(_ macID: String) async throws -> Bool {
+        try await updateIndex { macs in
+            guard !macs.contains(macID) else { return false }
+            macs.append(macID)
+            return true
+        }
+    }
+
+    /// Read-modify-write of the `macs` index; `change` returns whether it
+    /// changed anything. Retried when another device wrote at the same moment.
+    private func updateIndex(_ change: (inout [String]) -> Bool) async throws -> Bool {
         for _ in 0..<8 {
             let index = try await existing(Self.indexID) ?? CKRecord(recordType: Self.indexType, recordID: Self.indexID)
             var macs = (index["macs"] as? [String]) ?? []
-            guard !macs.contains(macID) else { return }
-            macs.append(macID)
+            guard change(&macs) else { return false }
             index["macs"] = macs as CKRecordValue
             do {
                 try await saveRecord(index, policy: .ifServerRecordUnchanged)
-                return
+                return true
             } catch let e as CKError where e.code == .serverRecordChanged {
-                continue // Another Mac registered at the same moment; retry.
+                continue // Another device wrote at the same moment; retry.
             }
         }
         throw CKError(.serverRecordChanged)
+    }
+
+    /// Removes a Mac from iCloud: its server list, its relay status and its
+    /// index entry. A Mac that is still running registers itself again on
+    /// its next relay (about a minute), so this only sticks for Macs that are
+    /// gone (reinstalled, sold, renamed install).
+    public func removeMac(_ macID: String) async throws {
+        let ids = [CKRecord.ID(recordName: "mac-" + macID), CKRecord.ID(recordName: "status-" + macID)]
+        let results = try await database.modifyRecords(saving: [], deleting: ids)
+        for result in results.deleteResults.values {
+            do { try result.get() } catch let e as CKError where e.code == .unknownItem {}
+        }
+        _ = try await updateIndex { macs in
+            let before = macs.count
+            macs.removeAll { $0 == macID }
+            return macs.count != before
+        }
     }
 
     private func saveRecord(_ record: CKRecord, policy: CKModifyRecordsOperation.RecordSavePolicy) async throws {
@@ -146,12 +179,15 @@ public final class CloudStore: @unchecked Sendable {
     static let statusType = "MacStatus"
 
     /// Overwrites this Mac's status record (one per Mac, so no conflicts).
-    public func saveStatus(_ status: RelayStatus, macID: String) async throws {
+    /// Returns true when this Mac had been removed from the index (by an
+    /// iPhone) and just registered again, so its list should be republished.
+    @discardableResult
+    public func saveStatus(_ status: RelayStatus, macID: String) async throws -> Bool {
         let id = CKRecord.ID(recordName: "status-" + macID)
         let record = try await existing(id) ?? CKRecord(recordType: Self.statusType, recordID: id)
         record["payload"] = try JSONEncoder().encode(status) as CKRecordValue
         try await saveRecord(record, policy: .allKeys)
-        try await register(macID)
+        return try await register(macID)
     }
 
     public func fetchStatuses() async throws -> [RelayStatus] {
@@ -280,6 +316,25 @@ public final class CloudStore: @unchecked Sendable {
         let record = try await existing(Self.notificationPrefsID)
             ?? CKRecord(recordType: Self.listType, recordID: Self.notificationPrefsID)
         record["payload"] = try JSONEncoder().encode(prefs) as CKRecordValue
+        try await saveRecord(record, policy: .changedKeys)
+    }
+
+    // MARK: Servers added on iPhones
+
+    /// Shared by the user's iPhones; same existing record type and field as
+    /// the prefs above, so Production needs no schema change. Macs never read it.
+    static let phoneServersID = CKRecord.ID(recordName: "phone-servers")
+
+    public func fetchPhoneServers() async throws -> PhoneServerList? {
+        guard let record = try await existing(Self.phoneServersID),
+              let data = record["payload"] as? Data else { return nil }
+        return try JSONDecoder().decode(PhoneServerList.self, from: data)
+    }
+
+    public func savePhoneServers(_ list: PhoneServerList) async throws {
+        let record = try await existing(Self.phoneServersID)
+            ?? CKRecord(recordType: Self.listType, recordID: Self.phoneServersID)
+        record["payload"] = try JSONEncoder().encode(list) as CKRecordValue
         try await saveRecord(record, policy: .changedKeys)
     }
 

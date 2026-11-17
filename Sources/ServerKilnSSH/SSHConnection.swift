@@ -26,6 +26,8 @@ public enum SSHClientError: Error, LocalizedError, Sendable, Equatable {
     case hostKeyMismatch(presented: String)
     case noPinnedHostKey
     case authenticationFailed
+    /// The server offers no password login (only keys / keyboard-interactive).
+    case passwordUnsupported
     case channelRejected
     case timeout
     case closed
@@ -34,8 +36,9 @@ public enum SSHClientError: Error, LocalizedError, Sendable, Equatable {
     public var errorDescription: String? {
         switch self {
         case .hostKeyMismatch: return String(appLocalized: "主机密钥已变化，已拒绝连接")
-        case .noPinnedHostKey: return String(appLocalized: "没有可信的主机密钥，请在 Mac 上重新部署")
-        case .authenticationFailed: return String(appLocalized: "密钥认证失败，请在 Mac 上重新部署")
+        case .noPinnedHostKey: return String(appLocalized: "没有可信的主机密钥")
+        case .authenticationFailed: return String(appLocalized: "认证失败：服务器拒绝了密码或密钥")
+        case .passwordUnsupported: return String(appLocalized: "服务器未开启密码登录，请改用密钥")
         case .channelRejected: return String(appLocalized: "服务器拒绝了请求")
         case .timeout: return String(appLocalized: "连接超时")
         case .closed: return String(appLocalized: "连接已断开")
@@ -107,12 +110,39 @@ public final class SSHConnection: @unchecked Sendable {
     public var isActive: Bool { channel.isActive }
 
     public static func connect(_ endpoint: SSHEndpoint, identity: SSHIdentity, timeout: TimeInterval = 10) async throws -> SSHConnection {
+        try await connect(endpoint, credential: .identity(identity), timeout: timeout)
+    }
+
+    public static func connect(_ endpoint: SSHEndpoint, credential: SSHCredential, timeout: TimeInterval = 10) async throws -> SSHConnection {
         let pinned = Set(endpoint.hostKeys.compactMap(HostKey.normalize))
         guard !pinned.isEmpty else { throw SSHClientError.noPinnedHostKey }
         let failure = FailureBox()
-        let userAuth = KeyAuthDelegate(username: endpoint.user, key: NIOSSHPrivateKey(ed25519Key: identity.key), failure: failure)
+        let userAuth = CredentialAuthDelegate(username: endpoint.user, credential: credential, failure: failure)
         let hostAuth = PinnedHostKeyDelegate(pinned: pinned, failure: failure)
+        return try await open(endpoint, userAuth: userAuth, hostAuth: hostAuth, failure: failure, timeout: timeout)
+    }
 
+    /// The host key a server presents, read before any authentication so the
+    /// user can compare its fingerprint and decide to trust it. Nothing is
+    /// sent but the key exchange.
+    public static func scanHostKey(host: String, port: Int, timeout: TimeInterval = 10) async throws -> String {
+        let failure = FailureBox()
+        let capture = CapturingHostKeyDelegate()
+        let endpoint = SSHEndpoint(host: host, port: port, user: "serverkiln", hostKeys: [])
+        let userAuth = CredentialAuthDelegate(username: endpoint.user, credential: .password(""), failure: failure)
+        let connection = try await open(endpoint, userAuth: userAuth, hostAuth: capture, failure: failure, timeout: timeout)
+        defer { connection.close() }
+        let deadline = Date().addingTimeInterval(timeout)
+        while capture.key == nil, connection.isActive, Date() < deadline {
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        if let key = capture.key { return key }
+        throw connection.isActive ? SSHClientError.timeout : SSHClientError.connect(String(appLocalized: "对方没有完成 SSH 握手"))
+    }
+
+    private static func open(_ endpoint: SSHEndpoint, userAuth: NIOSSHClientUserAuthenticationDelegate,
+                             hostAuth: NIOSSHClientServerAuthenticationDelegate, failure: FailureBox,
+                             timeout: TimeInterval) async throws -> SSHConnection {
         let bootstrap = ClientBootstrap(group: SSHEventLoop.group)
             .connectTimeout(.milliseconds(Int64(timeout * 1000)))
             .channelOption(ChannelOptions.socket(SocketOptionLevel(IPPROTO_TCP), TCP_NODELAY), value: 1)
@@ -230,29 +260,54 @@ private final class PinnedHostKeyDelegate: NIOSSHClientServerAuthenticationDeleg
     }
 }
 
-/// Offers the single Ed25519 key once; a rejection ends the attempt.
+/// Records the presented host key and refuses it, so a scan never
+/// authenticates.
+private final class CapturingHostKeyDelegate: NIOSSHClientServerAuthenticationDelegate, @unchecked Sendable {
+    private let lock = NSLock()
+    private var _key: String?
+    var key: String? { lock.withLock { _key } }
+
+    func validateHostKey(hostKey: NIOSSHPublicKey, validationCompletePromise: EventLoopPromise<Void>) {
+        lock.withLock { _key = String(openSSHPublicKey: hostKey) }
+        validationCompletePromise.fail(SSHClientError.closed)
+    }
+}
+
+/// Offers the single key or password once; a rejection ends the attempt.
 /// Only touched on the connection's event loop.
-private final class KeyAuthDelegate: NIOSSHClientUserAuthenticationDelegate, @unchecked Sendable {
+private final class CredentialAuthDelegate: NIOSSHClientUserAuthenticationDelegate, @unchecked Sendable {
     let username: String
-    let key: NIOSSHPrivateKey
+    let credential: SSHCredential
     let failure: FailureBox
     private var offered = false
 
-    init(username: String, key: NIOSSHPrivateKey, failure: FailureBox) {
+    init(username: String, credential: SSHCredential, failure: FailureBox) {
         self.username = username
-        self.key = key
+        self.credential = credential
         self.failure = failure
     }
 
     func nextAuthenticationType(availableMethods: NIOSSHAvailableUserAuthenticationMethods,
                                 nextChallengePromise: EventLoopPromise<NIOSSHUserAuthenticationOffer?>) {
-        guard !offered, availableMethods.contains(.publicKey) else {
-            failure.record(.authenticationFailed)
-            nextChallengePromise.fail(SSHClientError.authenticationFailed)
-            return
+        let offer: NIOSSHUserAuthenticationOffer.Offer
+        switch credential {
+        case let .key(key):
+            guard !offered, availableMethods.contains(.publicKey) else { return fail(.authenticationFailed, nextChallengePromise) }
+            offer = .privateKey(.init(privateKey: key.nio))
+        case let .password(password):
+            // The first call lists every method; after a rejection, the
+            // server's own list says whether passwords are accepted at all.
+            guard availableMethods.contains(.password) else { return fail(.passwordUnsupported, nextChallengePromise) }
+            guard !offered else { return fail(.authenticationFailed, nextChallengePromise) }
+            offer = .password(.init(password: password))
         }
         offered = true
-        nextChallengePromise.succeed(.init(username: username, serviceName: "", offer: .privateKey(.init(privateKey: key))))
+        nextChallengePromise.succeed(.init(username: username, serviceName: "", offer: offer))
+    }
+
+    private func fail(_ error: SSHClientError, _ promise: EventLoopPromise<NIOSSHUserAuthenticationOffer?>) {
+        failure.record(error)
+        promise.fail(error)
     }
 }
 
@@ -352,7 +407,13 @@ public final class ShellSession: @unchecked Sendable {
     public static func open(_ endpoint: SSHEndpoint, identity: SSHIdentity, columns: Int, rows: Int,
                             onData: @escaping @Sendable (Data) -> Void,
                             onClose: @escaping @Sendable () -> Void) async throws -> ShellSession {
-        let conn = try await SSHConnection.connect(endpoint, identity: identity)
+        try await open(endpoint, credential: .identity(identity), columns: columns, rows: rows, onData: onData, onClose: onClose)
+    }
+
+    public static func open(_ endpoint: SSHEndpoint, credential: SSHCredential, columns: Int, rows: Int,
+                            onData: @escaping @Sendable (Data) -> Void,
+                            onClose: @escaping @Sendable () -> Void) async throws -> ShellSession {
+        let conn = try await SSHConnection.connect(endpoint, credential: credential)
         let sink = CallbackSink(onData: onData, onClose: onClose)
         let pty = SSHChannelRequestEvent.PseudoTerminalRequest(
             wantReply: true, term: "xterm-256color", terminalCharacterWidth: columns, terminalRowHeight: rows,
@@ -407,6 +468,24 @@ public extension SSHConnection {
         let channel = try await openSession(command: command, pty: nil, sink: sink, timeout: 10)
         try await Task.sleep(for: .seconds(wait))
         channel.close(promise: nil)
+        return sink.text
+    }
+}
+
+public extension SSHConnection {
+    /// Runs one command to completion (the server closes the channel) and
+    /// returns everything it printed.
+    func execute(_ command: String, timeout: TimeInterval = 20) async throws -> String {
+        let sink = BufferSink()
+        let channel = try await openSession(command: command, pty: nil, sink: sink, timeout: timeout)
+        let deadline = Date().addingTimeInterval(timeout)
+        while channel.isActive {
+            guard Date() < deadline else {
+                channel.close(promise: nil)
+                throw SSHClientError.timeout
+            }
+            try await Task.sleep(for: .milliseconds(50))
+        }
         return sink.text
     }
 }

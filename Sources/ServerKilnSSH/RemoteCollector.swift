@@ -9,15 +9,21 @@ import ServerKilnCore
 /// command we send, so the key can never be used for anything else.
 public final class RemoteCollector: @unchecked Sendable {
     public let endpoint: SSHEndpoint
-    private let identity: SSHIdentity
+    private let credential: SSHCredential
     private let lock = NSLock()
     private var connection: SSHConnection?
     private var channel: Channel?
     private var sink: CollectorSink?
 
-    public init(endpoint: SSHEndpoint, identity: SSHIdentity) {
+    public convenience init(endpoint: SSHEndpoint, identity: SSHIdentity) {
+        self.init(endpoint: endpoint, credential: .identity(identity))
+    }
+
+    /// With a password or the user's own key the loop runs as sent (the
+    /// same read-only script the Mac runs over its own `ssh`).
+    public init(endpoint: SSHEndpoint, credential: SSHCredential) {
         self.endpoint = endpoint
-        self.identity = identity
+        self.credential = credential
     }
 
     deinit { close() }
@@ -65,7 +71,7 @@ public final class RemoteCollector: @unchecked Sendable {
             return live
         }
         close()
-        let conn = try await SSHConnection.connect(endpoint, identity: identity, timeout: timeout)
+        let conn = try await SSHConnection.connect(endpoint, credential: credential, timeout: timeout)
         let sink = CollectorSink()
         do {
             let channel = try await conn.openSession(command: RemoteScript.loopCommand, pty: nil, sink: sink, timeout: timeout)
