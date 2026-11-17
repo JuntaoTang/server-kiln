@@ -25,7 +25,8 @@ public sealed class FleetViewModel : ObservableObject
     public string StatusMessage { get => message; set { message = value; Changed(); } }
     public Visibility EmptyVisibility => Servers.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     public Visibility DetailVisibility => SelectedServer is null ? Visibility.Collapsed : Visibility.Visible;
-    public string FleetSummary => $"{Servers.Count(s => s.Reading.Activity == ServerActivity.Busy && s.Config.Enabled)} / {Servers.Count(s => s.Config.Enabled)} {Localizer.Current["Busy"]}";
+    public string FleetSummary => string.Format(Localizer.Current["FleetSummaryFormat"],
+        Servers.Count(s => s.Config.Enabled), Servers.Count(s => s.Reading.Activity == ServerActivity.Busy && s.Config.Enabled));
 
     public void Sync(AppPreferences preferences)
     {
@@ -104,6 +105,10 @@ public sealed class ServerViewModel(ServerConfig config) : ObservableObject
 public sealed record GpuViewModel(GpuStat Stat)
 {
     public string Name => $"GPU {Stat.Index}  ·  {Stat.Name}";
+    public string Model => Stat.Name;
+    public string Index => "GPU " + Stat.Index;
+    public string Temperature => Stat.Temperature is { } value ? $"{value:0} °C" : "—";
+    public string Power => Stat.PowerDraw is { } value ? $"{value:0} W" : "—";
     public string Telemetry => $"{(Stat.Temperature is { } t ? $"{t:0} °C" : "—")}  ·  {(Stat.PowerDraw is { } p ? $"{p:0} W" : "—")}";
     public string Utilization => $"{Stat.Utilization:0}%";
     public double UtilizationValue => Math.Clamp(Stat.Utilization, 0, 100);
@@ -122,6 +127,10 @@ public sealed record ProcessViewModel(RemoteTask Task)
 public sealed record JobViewModel(TaskRecord Record)
 {
     public string Command => Record.Command;
+    public string User => Record.User;
+    public string Gpus => Record.GpuIndices.Length == 0 ? "—" : string.Join(", ", Record.GpuIndices);
+    public string Started => Record.StartedAt.LocalDateTime.ToString("MM-dd HH:mm");
+    public string Ended => Record.EndedAt is { } ended ? ended.LocalDateTime.ToString("MM-dd HH:mm") : Localizer.Current["Running"];
     public string Detail => $"{Record.User} · GPU {string.Join(",", Record.GpuIndices)} · {Record.StartedAt.LocalDateTime:g} → "
         + (Record.EndedAt is { } ended ? ended.LocalDateTime.ToString("g") : Localizer.Current["Running"]);
 }

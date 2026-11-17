@@ -69,6 +69,8 @@ and sends no phone notifications.
 
 ![Windows dark overview in English](screenshots/windows/en/overview-dark.png)
 
+![Windows jobs table](screenshots/windows/zh/jobs-light.png)
+
 ![Windows per-GPU history](screenshots/windows/en/history-per-gpu-dark.png)
 
 ![Windows live history in Chinese](screenshots/windows/zh/history-live-light.png)

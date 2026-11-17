@@ -236,21 +236,22 @@ public partial class App : System.Windows.Application
     {
         var light = theme == "light";
         void Brush(string key, string value) => Resources[key] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(value));
-        Brush("BackgroundBrush", light ? "#F7F8FA" : "#171C24");
-        Brush("SidebarBrush", light ? "#F0F2F6" : "#12171E");
-        Brush("SurfaceBrush", light ? "#FFFFFF" : "#1E2530");
-        Brush("RaisedBrush", light ? "#EBEEF4" : "#293241");
-        Brush("BorderBrush", light ? "#E0E5ED" : "#303A49");
-        Brush("ChartGridBrush", light ? "#ECF0F5" : "#2A3341");
-        Brush("TextBrush", light ? "#202B3C" : "#E7EDF5");
-        Brush("MutedBrush", light ? "#56677D" : "#99A7BA");
-        Brush("AccentBrush", light ? "#4964CF" : "#A7B6FF");
-        Brush("AccentSoftBrush", light ? "#E3E9FC" : "#27344D");
-        Brush("PrimaryTextBrush", light ? "#FFFFFF" : "#15213E");
-        Brush("GreenBrush", light ? "#1B7666" : "#7BC6B2");
-        Brush("BusyBrush", light ? "#895822" : "#E3B776");
-        Brush("DangerBrush", light ? "#BF4D51" : "#F1A1A5");
-        Brush("DangerSoftBrush", light ? "#FCEEEF" : "#35252E");
+        Brush("BackgroundBrush", light ? "#FFFFFF" : "#1F2024");
+        Brush("SidebarBrush", light ? "#F5F6F7" : "#292A2F");
+        Brush("SurfaceBrush", light ? "#FFFFFF" : "#1F2024");
+        Brush("RaisedBrush", light ? "#EFF0F1" : "#2B2D33");
+        Brush("BorderBrush", light ? "#DEE0E3" : "#383A42");
+        Brush("ChartGridBrush", light ? "#EFF0F1" : "#31333B");
+        Brush("TextBrush", light ? "#1F2329" : "#F0F0F3");
+        Brush("MutedBrush", light ? "#646A73" : "#A7A9B0");
+        Brush("AccentBrush", light ? "#245BDB" : "#7CA5FF");
+        Brush("AccentSoftBrush", light ? "#E1EAFF" : "#2C3E60");
+        Brush("SecondaryMetricBrush", light ? "#7E9DDC" : "#597BC0");
+        Brush("PrimaryTextBrush", light ? "#FFFFFF" : "#17213A");
+        Brush("GreenBrush", light ? "#207A51" : "#65C797");
+        Brush("BusyBrush", light ? "#8C5E18" : "#E4B06D");
+        Brush("DangerBrush", light ? "#C43D42" : "#F09898");
+        Brush("DangerSoftBrush", light ? "#FFF1F0" : "#3B2A2C");
         if (MainWindow is MainWindow window) window.RefreshHistoryIfVisible();
     }
 

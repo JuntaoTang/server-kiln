@@ -4,9 +4,9 @@ internal static class DemoData
 {
     public static AppPreferences Preferences => new()
     {
-        Servers = [new ServerConfig { Id = Guid.Parse("10000000-0000-4000-8000-000000000001"), Name = "Atlas · Training", Target = "atlas.example.com" },
-            new ServerConfig { Id = Guid.Parse("10000000-0000-4000-8000-000000000002"), Name = "Orion · Evaluation", Target = "orion.example.com" },
-            new ServerConfig { Id = Guid.Parse("10000000-0000-4000-8000-000000000003"), Name = "Lyra · CPU", Target = "lyra.example.com" }]
+        Servers = [new ServerConfig { Id = Guid.Parse("10000000-0000-4000-8000-000000000001"), Name = "gpu-01", Target = "gpu-01.example.com" },
+            new ServerConfig { Id = Guid.Parse("10000000-0000-4000-8000-000000000002"), Name = "gpu-02", Target = "gpu-02.example.com" },
+            new ServerConfig { Id = Guid.Parse("10000000-0000-4000-8000-000000000003"), Name = "cpu-01", Target = "cpu-01.example.com" }]
     };
 
     public static void Populate(App app)
@@ -22,8 +22,8 @@ internal static class DemoData
             else output += "@@NOGPU\n";
             output += "@@PS\n4242 researcher 7384 198.5 10485760 torchrun --nproc_per_node=2 train.py --config configs/run.yaml\n@@TOP\n4242 researcher 7384 198.5 10485760 torchrun --nproc_per_node=2 train.py --config configs/run.yaml\n520 researcher 2400 12.5 400000 python prepare_dataset.py\n@@CWD\n4242 /workspace/training\n520 /workspace/data\n@@END\n";
             var snapshot = SnapshotParser.Parse(output, now);
-            var jobs = new[] { new TaskRecord("torchrun --nproc_per_node=2 train.py --config configs/run.yaml", "researcher", "/workspace/training", [0, 1], now.AddHours(-2)),
-                new TaskRecord("python evaluate.py --checkpoint outputs/epoch-12", "researcher", "/workspace/training", [0], now.AddHours(-5), now.AddHours(-3)) };
+            var jobs = new[] { new TaskRecord("torchrun --nproc_per_node=2 train.py --config configs/run.yaml", "researcher", "/workspace/training", snapshot.Gpus.Select(g => g.Index).ToArray(), now.AddHours(-2)),
+                new TaskRecord("python evaluate.py --checkpoint outputs/epoch-12", "researcher", "/workspace/training", snapshot.Gpus.Take(1).Select(g => g.Index).ToArray(), now.AddHours(-5), now.AddHours(-3)) };
             app.ViewModel.Apply(new ServerReading(server, snapshot, LastAttempt: now, LastSuccess: now,
                 Activity: i == 0 ? ServerActivity.Busy : i == 1 ? ServerActivity.Idle : ServerActivity.CpuOnly, Jobs: jobs));
             for (var n = 0; n < 288; n++)

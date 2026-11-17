@@ -107,15 +107,18 @@ SSH configuration. A selected file is passed as a separate `-i` argument with
 - Aggregate / per-GPU history, utilization / VRAM selection and recent grouped jobs.
 - English / Chinese switching and light / dark themes.
 
-The dashboard uses a compact server sidebar and separate Overview, Recent jobs
-and History tabs. Terminal and refresh stay in the header; **Edit**, **Remove**
-and **First connection** are in its **⋯** menu. Settings, language and appearance
-controls sit at the bottom of the sidebar. Settings are grouped into Monitoring,
-SSH connection and iPhone notifications. New installations start in light mode;
-an existing appearance preference is retained.
+Select a server in the left list. Overview contains system metrics and GPU /
+process tables; Jobs lists commands, users, GPU indices and start / end times;
+History contains chart controls and resource curves. Add and import controls are
+beside the server-list heading. Terminal and refresh stay in the header; **Edit**,
+**Remove** and **First connection** are in its **⋯** menu. Settings, language and
+appearance controls sit at the bottom of the sidebar. Settings are grouped into
+Monitoring, SSH connection and iPhone notifications. New installations start in
+light mode; an existing appearance preference is retained.
 
-左侧选择服务器，右侧分别查看资源总览、近期任务和资源历史。顶部保留终端与刷新，
-编辑、移除和首次连接收进 **⋯** 菜单；设置、语言及深浅色切换位于侧栏底部。
+左侧列表选择服务器，标题旁可添加和导入。总览显示系统指标、GPU 和进程表格；
+任务表按列显示命令、用户、GPU 和起止时间；历史页查看曲线。顶部保留终端与刷新，
+编辑、移除和首次连接在 **⋯** 菜单中；设置、语言及深浅色切换位于侧栏底部。
 设置按监控、SSH 连接和 iPhone 通知分组。新安装默认浅色，已有主题选择会保留。
 
 Settings are stored in `%LOCALAPPDATA%\ServerKiln\settings.json`, history and job

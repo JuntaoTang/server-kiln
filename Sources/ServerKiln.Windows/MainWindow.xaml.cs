@@ -186,6 +186,9 @@ public partial class MainWindow : Window
         await SaveSnapshotAsync(Path.Combine(directory, "overview-dark.png"));
         AppState.SavePreferences(AppState.Preferences with { Theme = "light" });
         await SaveSnapshotAsync(Path.Combine(directory, "overview-light.png"));
+        DetailTabs.SelectedItem = JobsTab;
+        await SaveSnapshotAsync(Path.Combine(directory, "jobs-light.png"));
+        DetailTabs.SelectedIndex = 0;
         AppState.SavePreferences(AppState.Preferences with { Theme = "dark" });
         DetailTabs.SelectedItem = HistoryTab; historyRange = HistoryRange.Day; historyPerGpu = true; historyMetric = GpuHistoryMetric.Utilization;
         RefreshHistoryIfVisible(force: true);
