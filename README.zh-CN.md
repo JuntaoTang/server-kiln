@@ -32,7 +32,7 @@ ServerKiln 是一个原生 SwiftUI 菜单栏工具，通过 SSH 监控远端 Lin
   <img src="docs/screenshots/zh/panel-expanded-light.png" width="350" alt="浅色单卡与任务详情">
 </p>
 <p align="center"><img src="docs/screenshots/zh/history-dark.png" width="850" alt="GPU 利用率与显存历史"></p>
-<p align="center"><img src="docs/screenshots/windows/zh/overview-dark.png" width="850" alt="Windows 桌面 GPU 监控"></p>
+<p align="center"><img src="docs/screenshots/windows/zh/overview-light.png" width="850" alt="Windows 桌面 GPU 监控"></p>
 <p align="center"><sub>截图全部使用虚构的演示服务器和任务。</sub></p>
 
 ## 功能

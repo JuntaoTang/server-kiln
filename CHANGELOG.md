@@ -3,13 +3,13 @@
 ## Unreleased — Windows client
 
 - Compact Windows server list, tab-specific content and GPU / process / job tables,
-  with neutral surfaces, smaller controls and grouped settings. Both themes share
-  the layout; new installs default to light mode and saved choices remain.
+  with neutral surfaces, consistent spacing, readable labels and grouped settings.
+  Windows uses a fixed light palette and accepts legacy settings with a dark preference.
 - Independent .NET 10 / WPF tray client with native Windows OpenSSH sessions,
   GPU/CPU monitoring, SQLite history, recent jobs and debounced notifications.
 - Optional iPhone notifications through Bark with a DPAPI-protected device key.
   Original iPhone app / widget / iCloud pairing is not connected by this client.
-- Chinese and English UI, light/dark themes, user-level installation and login startup.
+- Chinese and English UI, a light interface, user-level installation and login startup.
 - Shared Swift/C# parsing fixtures, collector export verification, Windows CI,
   WPF smoke tests and self-contained Windows packaging with checksums and notices.
 - CRLF normalization in the shared Swift snapshot parser, fixing empty host and

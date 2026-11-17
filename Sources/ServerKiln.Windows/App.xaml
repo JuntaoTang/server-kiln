@@ -17,7 +17,7 @@
   <SolidColorBrush x:Key="BusyBrush" Color="#8C5E18" />
   <SolidColorBrush x:Key="DangerBrush" Color="#C43D42" />
   <SolidColorBrush x:Key="DangerSoftBrush" Color="#FFF1F0" />
-  <SolidColorBrush x:Key="SecondaryMetricBrush" Color="#7E9DDC" />
+  <SolidColorBrush x:Key="SecondaryMetricBrush" Color="#6689CE" />
   <SolidColorBrush x:Key="PrimaryTextBrush" Color="#FFFFFF" />
   <SolidColorBrush x:Key="TransparentBrush" Color="Transparent" />
   <Style x:Key="FocusRing">
@@ -29,26 +29,26 @@
    <Setter Property="Background" Value="{DynamicResource BackgroundBrush}" />
    <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
    <Setter Property="FontFamily" Value="Segoe UI, Microsoft YaHei UI" />
-   <Setter Property="FontSize" Value="13" />
+   <Setter Property="FontSize" Value="14" />
    <Setter Property="UseLayoutRounding" Value="True" />
    <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
   </Style>
   <Style x:Key="Caption" TargetType="TextBlock">
-   <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /><Setter Property="FontSize" Value="12" />
+   <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /><Setter Property="FontSize" Value="13" />
   </Style>
   <Style x:Key="SectionTitle" TargetType="TextBlock">
    <Setter Property="FontSize" Value="14" /><Setter Property="FontWeight" Value="SemiBold" />
   </Style>
   <Style x:Key="MetricValue" TargetType="TextBlock">
    <Setter Property="FontSize" Value="24" /><Setter Property="FontWeight" Value="SemiBold" />
-   <Setter Property="Margin" Value="0,6,0,5" /><Setter Property="Typography.NumeralAlignment" Value="Tabular" />
+   <Setter Property="Margin" Value="0,4,0,4" /><Setter Property="Typography.NumeralAlignment" Value="Tabular" />
   </Style>
-  <Style x:Key="CommandText" TargetType="TextBlock"><Setter Property="FontFamily" Value="Cascadia Mono, Consolas, Microsoft YaHei UI" /><Setter Property="FontSize" Value="12" /><Setter Property="TextTrimming" Value="CharacterEllipsis" /></Style>
+  <Style x:Key="CommandText" TargetType="TextBlock"><Setter Property="FontFamily" Value="Cascadia Mono, Consolas, Microsoft YaHei UI" /><Setter Property="FontSize" Value="13" /><Setter Property="TextTrimming" Value="CharacterEllipsis" /></Style>
   <Style TargetType="Button">
    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
    <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" /><Setter Property="BorderThickness" Value="1" />
-   <Setter Property="Padding" Value="12,6" /><Setter Property="MinHeight" Value="32" />
+   <Setter Property="Padding" Value="12,4" /><Setter Property="MinHeight" Value="32" />
    <Setter Property="FontSize" Value="13" /><Setter Property="Cursor" Value="Hand" />
    <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
@@ -86,12 +86,12 @@
    <Style.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#C6444B" /><Setter Property="Foreground" Value="White" /></Trigger></Style.Triggers>
   </Style>
   <Style x:Key="SegmentButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
-   <Setter Property="Padding" Value="11,5" /><Setter Property="MinHeight" Value="28" /><Setter Property="FontSize" Value="12" /><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+   <Setter Property="Padding" Value="11,4" /><Setter Property="MinHeight" Value="28" /><Setter Property="FontSize" Value="13" /><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
   </Style>
   <Style TargetType="TextBox">
    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" /><Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" /><Setter Property="CaretBrush" Value="{DynamicResource TextBrush}" />
-   <Setter Property="Padding" Value="9,6" /><Setter Property="VerticalContentAlignment" Value="Center" />
+   <Setter Property="Padding" Value="8,4" /><Setter Property="VerticalContentAlignment" Value="Center" />
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TextBox">
     <Border x:Name="Chrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="4"><ScrollViewer x:Name="PART_ContentHost" /></Border>
     <ControlTemplate.Triggers><Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Trigger></ControlTemplate.Triggers>
@@ -99,7 +99,7 @@
   </Style>
   <Style TargetType="PasswordBox">
    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" /><Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
-   <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" /><Setter Property="Padding" Value="9,6" />
+   <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" /><Setter Property="Padding" Value="8,4" />
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="PasswordBox">
     <Border x:Name="Chrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="4"><ScrollViewer x:Name="PART_ContentHost" /></Border>
     <ControlTemplate.Triggers><Trigger Property="IsKeyboardFocusWithin" Value="True"><Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Trigger></ControlTemplate.Triggers>
@@ -113,7 +113,7 @@
      <Border x:Name="Box" Width="17" Height="17" CornerRadius="3" BorderThickness="1" BorderBrush="{DynamicResource MutedBrush}" Background="{DynamicResource SurfaceBrush}">
       <Path x:Name="Tick" Visibility="Collapsed" Data="M 3,8 L 6.5,11.5 L 13,5" Stroke="{DynamicResource PrimaryTextBrush}" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
      </Border>
-     <ContentPresenter Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True" />
+     <ContentPresenter Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True" />
     </Grid>
     <ControlTemplate.Triggers>
      <Trigger Property="IsChecked" Value="True"><Setter TargetName="Box" Property="Background" Value="{DynamicResource AccentBrush}" /><Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource AccentBrush}" /><Setter TargetName="Tick" Property="Visibility" Value="Visible" /></Trigger>
@@ -129,7 +129,7 @@
    <Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="Padding" Value="0" /><Setter Property="Margin" Value="0,0,0,2" />
    <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem">
-    <Border x:Name="Chrome" Padding="8,10" CornerRadius="4" BorderThickness="1" BorderBrush="Transparent" Background="Transparent"><ContentPresenter /></Border>
+    <Border x:Name="Chrome" Padding="8,8" CornerRadius="4" BorderThickness="1" BorderBrush="Transparent" Background="Transparent"><ContentPresenter /></Border>
     <ControlTemplate.Triggers>
      <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Chrome" Property="Background" Value="{DynamicResource RaisedBrush}" /></Trigger>
      <Trigger Property="IsSelected" Value="True"><Setter TargetName="Chrome" Property="Background" Value="{DynamicResource AccentSoftBrush}" /></Trigger>
@@ -148,7 +148,7 @@
    </ControlTemplate></Setter.Value></Setter>
   </Style>
   <Style TargetType="TabItem">
-   <Setter Property="Foreground" Value="{DynamicResource TextBrush}" /><Setter Property="Padding" Value="0,9,24,11" />
+   <Setter Property="Foreground" Value="{DynamicResource TextBrush}" /><Setter Property="Padding" Value="0,8,24,11" />
    <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TabItem">
     <Grid><ContentPresenter x:Name="Header" ContentSource="Header" TextElement.Foreground="{DynamicResource MutedBrush}" Margin="{TemplateBinding Padding}" /><Border x:Name="Marker" Visibility="Collapsed" Width="24" Height="2" HorizontalAlignment="Left" VerticalAlignment="Bottom" Background="{DynamicResource AccentBrush}" /></Grid>
@@ -171,8 +171,8 @@
    <Setter Property="ColumnHeaderHeight" Value="34" /><Setter Property="FontSize" Value="13" />
   </Style>
   <Style TargetType="DataGridColumnHeader">
-   <Setter Property="Background" Value="{DynamicResource RaisedBrush}" /><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /><Setter Property="Padding" Value="12,7" />
-   <Setter Property="FontWeight" Value="Normal" /><Setter Property="FontSize" Value="12" /><Setter Property="BorderThickness" Value="0,0,0,1" /><Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+   <Setter Property="Background" Value="{DynamicResource RaisedBrush}" /><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /><Setter Property="Padding" Value="12,8" />
+   <Setter Property="FontWeight" Value="Normal" /><Setter Property="FontSize" Value="13" /><Setter Property="BorderThickness" Value="0,0,0,1" /><Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
   </Style>
   <Style TargetType="DataGridCell">
    <Setter Property="BorderThickness" Value="0" /><Setter Property="Padding" Value="12,4" /><Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
@@ -181,10 +181,10 @@
   </Style>
   <Style TargetType="ContextMenu">
    <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
-   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ContextMenu"><Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="5"><StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" /></Border></ControlTemplate></Setter.Value></Setter>
+   <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ContextMenu"><Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="4"><StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" /></Border></ControlTemplate></Setter.Value></Setter>
   </Style>
   <Style TargetType="MenuItem">
-   <Setter Property="Padding" Value="13,9" /><Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+   <Setter Property="Padding" Value="13,8" /><Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
    <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="MenuItem"><Border x:Name="Chrome" Background="Transparent" Padding="{TemplateBinding Padding}" CornerRadius="5"><ContentPresenter ContentSource="Header" RecognizesAccessKey="True" /></Border>
     <ControlTemplate.Triggers><Trigger Property="IsHighlighted" Value="True"><Setter TargetName="Chrome" Property="Background" Value="{DynamicResource RaisedBrush}" /></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45" /></Trigger></ControlTemplate.Triggers>
    </ControlTemplate></Setter.Value></Setter>

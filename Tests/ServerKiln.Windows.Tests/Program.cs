@@ -311,6 +311,15 @@ internal static class TestSuite
         store.Save(prefs); var loaded = store.Load(); Check.Equal(prefs.Servers[0], loaded.Servers[0]); Check.Equal(prefs.SshConfigPath, loaded.SshConfigPath);
         Check.Throws<ArgumentException>(() => store.Save(prefs with { BackgroundIntervalSeconds = 0 }));
         Check.Equal(30, store.Load().BackgroundIntervalSeconds);
+        var legacy = JsonSerializer.SerializeToNode(prefs, JsonDefaults.Options)!.AsObject();
+        legacy["theme"] = "dark";
+        File.WriteAllText(store.FilePath, legacy.ToJsonString());
+        loaded = store.Load();
+        Check.Equal(prefs.Servers[0], loaded.Servers[0]); Check.Equal(prefs.SshConfigPath, loaded.SshConfigPath);
+        Check.Equal("zh", loaded.Language); Check.Equal(prefs.BackgroundIntervalSeconds, loaded.BackgroundIntervalSeconds);
+        store.Save(loaded);
+        using (var saved = JsonDocument.Parse(File.ReadAllText(store.FilePath)))
+            Check.True(!saved.RootElement.TryGetProperty("theme", out _));
         File.WriteAllText(store.FilePath, "broken"); Check.Throws<JsonException>(() => store.Load());
         return Task.CompletedTask;
     }

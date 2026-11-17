@@ -24,7 +24,7 @@ public sealed class Localizer : INotifyPropertyChanged
         ["Device"] = ("Device", "设备"), ["Utilization"] = ("Utilization", "利用率"),
         ["Temperature"] = ("Temp.", "温度"), ["Power"] = ("Power", "功耗"), ["Details"] = ("Details", "详细信息"),
         ["FleetSummaryFormat"] = ("{0} monitored · {1} busy", "监控 {0} 台 · 忙碌 {1} 台"),
-        ["Language"] = ("Switch language", "切换语言"), ["Theme"] = ("Switch appearance", "切换外观"),
+        ["Language"] = ("Switch language", "切换语言"),
         ["Minimize"] = ("Minimize", "最小化"), ["Maximize"] = ("Maximize", "最大化"),
         ["Restore"] = ("Restore", "还原窗口"), ["Close"] = ("Close to tray", "关闭到托盘"),
         ["Terminal"] = ("Terminal", "终端"), ["More"] = ("Server actions", "服务器操作"), ["Cores"] = ("cores", "核"),

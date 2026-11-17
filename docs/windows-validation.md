@@ -25,10 +25,12 @@ Workflow definitions also passed Actionlint 1.7.12 locally.
 - A per-user local pipe test checks repeated shortcut activation and timeout when
   no instance is listening. WPF smoke tests hide and restore the actual window.
 - WPF smoke tests render all four history ranges, aggregate / per-GPU modes,
-  utilization / memory selection, CPU-only and empty data, both languages and
-  themes, plus all settings pages and import dialogs. The redesigned caption
+  utilization / memory selection, CPU-only and empty data, both languages in the
+  fixed light palette, plus all settings pages and import dialogs. The redesigned caption
   checks maximize / restore, minimized-instance activation and the server action
-  menu. Synthetic exports cover both overview themes, a compact window and settings.
+  menu. Synthetic exports cover the overview, jobs, per-GPU history, a compact
+  window and settings. A legacy-settings test verifies that an obsolete dark-theme
+  preference preserves hosts, identity paths, language and polling configuration.
 - Package verification checks the SHA-256 manifest, archive paths, x64 PE host,
   desktop runtime, redistribution notices and exclusion of private runtime data.
 - Python repository tests check publication boundaries and damaged / incomplete /

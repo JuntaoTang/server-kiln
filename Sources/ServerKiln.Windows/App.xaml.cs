@@ -64,7 +64,6 @@ public partial class App : System.Windows.Application
                 if (index + 1 < e.Args.Length) Preferences = Preferences with { Language = e.Args[index + 1] };
             }
             Localizer.Current.SetLanguage(Preferences.Language);
-            SetTheme(Preferences.Theme);
             deviceKey = Demo ? "" : vault.Load();
             History = new HistoryStore(Path.Combine(storageDirectory, "history.sqlite"));
             monitor = new FleetMonitor(Preferences, History);
@@ -155,7 +154,6 @@ public partial class App : System.Windows.Application
         Preferences = preferences;
         monitor.UpdatePreferences(preferences);
         Localizer.Current.SetLanguage(preferences.Language);
-        SetTheme(preferences.Theme);
         ViewModel.Sync(preferences);
         ViewModel.RefreshLanguage();
         SetupTrayMenu();
@@ -231,29 +229,6 @@ public partial class App : System.Windows.Application
     }
     public void ShowError(Exception ex) => MessageBox.Show(MainWindow, ex.Message, Localizer.Current["Error"], MessageBoxButton.OK, MessageBoxImage.Warning);
     internal Task<bool> ReactivateForSmokeTestAsync() => InstanceActivation.TryActivateAsync(activationPipe);
-
-    public void SetTheme(string theme)
-    {
-        var light = theme == "light";
-        void Brush(string key, string value) => Resources[key] = new SolidColorBrush((Color)ColorConverter.ConvertFromString(value));
-        Brush("BackgroundBrush", light ? "#FFFFFF" : "#1F2024");
-        Brush("SidebarBrush", light ? "#F5F6F7" : "#292A2F");
-        Brush("SurfaceBrush", light ? "#FFFFFF" : "#1F2024");
-        Brush("RaisedBrush", light ? "#EFF0F1" : "#2B2D33");
-        Brush("BorderBrush", light ? "#DEE0E3" : "#383A42");
-        Brush("ChartGridBrush", light ? "#EFF0F1" : "#31333B");
-        Brush("TextBrush", light ? "#1F2329" : "#F0F0F3");
-        Brush("MutedBrush", light ? "#646A73" : "#A7A9B0");
-        Brush("AccentBrush", light ? "#245BDB" : "#7CA5FF");
-        Brush("AccentSoftBrush", light ? "#E1EAFF" : "#2C3E60");
-        Brush("SecondaryMetricBrush", light ? "#7E9DDC" : "#597BC0");
-        Brush("PrimaryTextBrush", light ? "#FFFFFF" : "#17213A");
-        Brush("GreenBrush", light ? "#207A51" : "#65C797");
-        Brush("BusyBrush", light ? "#8C5E18" : "#E4B06D");
-        Brush("DangerBrush", light ? "#C43D42" : "#F09898");
-        Brush("DangerSoftBrush", light ? "#FFF1F0" : "#3B2A2C");
-        if (MainWindow is MainWindow window) window.RefreshHistoryIfVisible();
-    }
 
     public async Task RequestExitAsync()
     {

@@ -97,7 +97,6 @@ public sealed record AppPreferences
     public string SshExecutable { get; init; } = "";
     public string SshConfigPath { get; init; } = "";
     public string Language { get; init; } = "system";
-    public string Theme { get; init; } = "light";
     public int BackgroundIntervalSeconds { get; init; } = 30;
     public int ForegroundIntervalSeconds { get; init; } = 3;
     public BusyPolicy Policy { get; init; } = new();

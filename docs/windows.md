@@ -105,21 +105,23 @@ SSH configuration. A selected file is passed as a separate `-i` argument with
 - Debounced busy/idle and optional connection notifications, with per-host mute.
 - 10-minute live history in memory, plus SQLite 24-hour, 7-day and 30-day charts.
 - Aggregate / per-GPU history, utilization / VRAM selection and recent grouped jobs.
-- English / Chinese switching and light / dark themes.
+- English / Chinese switching and a fixed light interface.
 
 Select a server in the left list. Overview contains system metrics and GPU /
 process tables; Jobs lists commands, users, GPU indices and start / end times;
 History contains chart controls and resource curves. Add and import controls are
 beside the server-list heading. Terminal and refresh stay in the header; **Edit**,
-**Remove** and **First connection** are in its **⋯** menu. Settings, language and
-appearance controls sit at the bottom of the sidebar. Settings are grouped into
-Monitoring, SSH connection and iPhone notifications. New installations start in
-light mode; an existing appearance preference is retained.
+**Remove** and **First connection** are in its **⋯** menu. Settings and language
+controls sit at the bottom of the sidebar. Settings are grouped into Monitoring,
+SSH connection and iPhone notifications. This Windows client always uses the
+light palette. Older settings containing a dark-theme preference still load their
+servers and connection settings; the obsolete theme field is ignored.
 
 左侧列表选择服务器，标题旁可添加和导入。总览显示系统指标、GPU 和进程表格；
 任务表按列显示命令、用户、GPU 和起止时间；历史页查看曲线。顶部保留终端与刷新，
-编辑、移除和首次连接在 **⋯** 菜单中；设置、语言及深浅色切换位于侧栏底部。
-设置按监控、SSH 连接和 iPhone 通知分组。新安装默认浅色，已有主题选择会保留。
+编辑、移除和首次连接在 **⋯** 菜单中；设置及语言切换位于侧栏底部。
+设置按监控、SSH 连接和 iPhone 通知分组。Windows 版固定使用浅色；升级时忽略旧版
+保存的深色选项，继续保留服务器、SSH 配置与私钥路径。
 
 Settings are stored in `%LOCALAPPDATA%\ServerKiln\settings.json`, history and job
 metadata in `history.sqlite`. Commands, usernames and working directories are
@@ -186,7 +188,7 @@ child-process pipe framing/cancellation with a fake SSH executable, history,
 task tracking, notification policy, encrypted storage and a fake Bark handler.
 It never uses production SSH credentials or sends a real phone notification.
 The build also runs `--smoke-test`, rendering the actual WPF templates, history
-and dialogs in both languages and themes using isolated synthetic data.
+and dialogs in both languages using isolated synthetic data and the light palette.
 Actual OpenSSH authentication, sleep/resume and iPhone delivery also require
 manual acceptance testing against an explicitly selected host/device.
 

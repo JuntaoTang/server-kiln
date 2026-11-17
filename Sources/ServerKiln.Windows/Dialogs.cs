@@ -6,7 +6,7 @@ namespace ServerKiln.Windows;
 internal static class DialogLayout
 {
     public static TextBlock Label(string key, double top = 13) => new()
-    { Text = Localizer.Current[key], FontSize = 12, Margin = new Thickness(0, top, 0, 7), TextWrapping = TextWrapping.Wrap };
+    { Text = Localizer.Current[key], FontSize = 13, Margin = new Thickness(0, top, 0, 7), TextWrapping = TextWrapping.Wrap };
     public static TextBox Input(StackPanel panel, string key, string value)
     {
         panel.Children.Add(Label(key));
@@ -31,12 +31,12 @@ internal static class DialogLayout
     }
     public static void Section(StackPanel panel, string key)
     {
-        var label = Label(key, 26); label.FontSize = 13; label.FontWeight = FontWeights.SemiBold;
+        var label = Label(key, 26); label.FontSize = 14; label.FontWeight = FontWeights.SemiBold;
         panel.Children.Add(label);
     }
     public static void Help(StackPanel panel, string key)
     {
-        var text = Label(key, 7); text.FontSize = 12; text.LineHeight = 20;
+        var text = Label(key, 7); text.FontSize = 13; text.LineHeight = 20;
         text.SetResourceReference(TextBlock.ForegroundProperty, "MutedBrush"); panel.Children.Add(text);
     }
     public static (StackPanel Fields, StackPanel Buttons) Build(Window window)

@@ -38,7 +38,7 @@ See the [platform feature matrix](docs/windows-compatibility.md) for desktop dif
   <img src="docs/screenshots/en/panel-expanded-light.png" width="350" alt="Expanded server with per-GPU metrics in light mode">
 </p>
 <p align="center"><img src="docs/screenshots/en/history-dark.png" width="850" alt="GPU utilization and memory history"></p>
-<p align="center"><img src="docs/screenshots/windows/en/overview-dark.png" width="850" alt="Windows desktop GPU monitoring"></p>
+<p align="center"><img src="docs/screenshots/windows/en/overview-light.png" width="850" alt="Windows desktop GPU monitoring"></p>
 <p align="center"><sub>All screenshots use synthetic demo servers and workloads.</sub></p>
 
 ## Why ServerKiln?

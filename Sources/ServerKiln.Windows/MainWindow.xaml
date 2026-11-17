@@ -7,13 +7,13 @@
  WindowStyle="None" WindowStartupLocation="CenterScreen" Icon="AppIcon.ico" Closing="WindowClosing" IsVisibleChanged="VisibilityChanged">
  <shell:WindowChrome.WindowChrome><shell:WindowChrome CaptionHeight="38" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False" /></shell:WindowChrome.WindowChrome>
  <Grid>
-  <Grid.ColumnDefinitions><ColumnDefinition Width="236" /><ColumnDefinition /></Grid.ColumnDefinitions>
+  <Grid.ColumnDefinitions><ColumnDefinition Width="240" /><ColumnDefinition /></Grid.ColumnDefinitions>
   <Grid.RowDefinitions><RowDefinition Height="38" /><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
   <Border Grid.RowSpan="3" Background="{DynamicResource SidebarBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0">
    <Grid Margin="12,8,12,12">
     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
     <StackPanel Orientation="Horizontal" Margin="8,2,0,16">
-     <Image Source="AppIcon.ico" Width="22" Height="22" Margin="0,0,9,0" />
+     <Image Source="AppIcon.ico" Width="22" Height="22" Margin="0,0,8,0" />
      <TextBlock Text="ServerKiln" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
     </StackPanel>
     <Grid Grid.Row="1" Margin="8,0,0,8" Height="32">
@@ -22,24 +22,23 @@
      <Button Grid.Column="1" Content="{Binding [ImportShort], Source={x:Static local:Localizer.Current}}" Style="{StaticResource GhostButton}" Click="ImportServers" Padding="8,4" ToolTip="{Binding [Import], Source={x:Static local:Localizer.Current}}" />
      <Button Grid.Column="2" Content="&#xE710;" Style="{StaticResource IconButton}" Click="AddServer" ToolTip="{Binding [Add], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [Add], Source={x:Static local:Localizer.Current}}" />
     </Grid>
-    <ListBox Grid.Row="2" ItemsSource="{Binding Servers}" SelectedItem="{Binding SelectedServer}" AutomationProperties.Name="Servers">
+    <ListBox Grid.Row="2" ItemsSource="{Binding Servers}" SelectedItem="{Binding SelectedServer}" AutomationProperties.Name="{Binding [Fleet], Source={x:Static local:Localizer.Current}}">
      <ListBox.ItemTemplate><DataTemplate>
       <Grid ToolTip="{Binding Target}"><Grid.ColumnDefinitions><ColumnDefinition Width="40" /><ColumnDefinition /></Grid.ColumnDefinitions>
        <Border Width="30" Height="30" Background="{DynamicResource RaisedBrush}" CornerRadius="4" HorizontalAlignment="Left" VerticalAlignment="Center"><TextBlock Text="&#xE968;" FontFamily="Segoe MDL2 Assets" FontSize="16" Foreground="{DynamicResource MutedBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
        <StackPanel Grid.Column="1">
-        <DockPanel><TextBlock Text="{Binding Status}" Style="{StaticResource Caption}" DockPanel.Dock="Right" FontSize="11" Margin="8,1,0,0" /><TextBlock Text="{Binding Name}" FontSize="13" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}" /></DockPanel>
-        <TextBlock Text="{Binding Summary}" Style="{StaticResource Caption}" FontSize="12" Margin="0,5,0,0" TextTrimming="CharacterEllipsis" />
+        <DockPanel><TextBlock Text="{Binding Status}" Style="{StaticResource Caption}" DockPanel.Dock="Right" FontSize="13" Margin="8,1,0,0" /><TextBlock Text="{Binding Name}" FontSize="13" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}" /></DockPanel>
+        <TextBlock Text="{Binding Summary}" Style="{StaticResource Caption}" FontSize="13" Margin="0,4,0,0" TextTrimming="CharacterEllipsis" />
        </StackPanel>
       </Grid>
      </DataTemplate></ListBox.ItemTemplate>
     </ListBox>
     <StackPanel Grid.Row="3" Margin="0,12,0,0">
-     <TextBlock Text="{Binding FleetSummary}" Style="{StaticResource Caption}" FontSize="12" Margin="8,0,0,12" />
+     <TextBlock Text="{Binding FleetSummary}" Style="{StaticResource Caption}" FontSize="13" Margin="8,0,0,12" />
      <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0" Padding="0,8,0,0">
-      <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-       <Button Style="{StaticResource GhostButton}" Click="OpenSettings" HorizontalAlignment="Left" Padding="8,5" Content="{Binding [Settings], Source={x:Static local:Localizer.Current}}" Foreground="{DynamicResource MutedBrush}" />
-       <Button Grid.Column="1" Content="EN / 中" Click="ToggleLanguage" Style="{StaticResource GhostButton}" Padding="8,5" FontSize="12" Foreground="{DynamicResource MutedBrush}" ToolTip="{Binding [Language], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [Language], Source={x:Static local:Localizer.Current}}" />
-       <Button Grid.Column="2" Content="&#xE790;" Click="ToggleTheme" Style="{StaticResource IconButton}" ToolTip="{Binding [Theme], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [Theme], Source={x:Static local:Localizer.Current}}" />
+      <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+       <Button Style="{StaticResource GhostButton}" Click="OpenSettings" HorizontalAlignment="Left" Padding="8,4" Content="{Binding [Settings], Source={x:Static local:Localizer.Current}}" Foreground="{DynamicResource MutedBrush}" />
+       <Button Grid.Column="1" Content="EN / 中" Click="ToggleLanguage" Style="{StaticResource GhostButton}" Padding="8,4" FontSize="13" Foreground="{DynamicResource MutedBrush}" ToolTip="{Binding [Language], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [Language], Source={x:Static local:Localizer.Current}}" />
       </Grid>
      </Border>
     </StackPanel>
@@ -53,7 +52,7 @@
   <Grid Grid.Column="1" Grid.Row="1" Margin="24,0,24,0">
    <StackPanel Visibility="{Binding EmptyVisibility}" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="420">
     <TextBlock Text="{Binding [NoServers], Source={x:Static local:Localizer.Current}}" FontSize="18" FontWeight="SemiBold" TextAlignment="Center" />
-    <TextBlock Text="{Binding [Welcome], Source={x:Static local:Localizer.Current}}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" TextAlignment="Center" LineHeight="22" Margin="0,12,0,20" />
+    <TextBlock Text="{Binding [Welcome], Source={x:Static local:Localizer.Current}}" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" TextAlignment="Center" LineHeight="22" Margin="0,12,0,24" />
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
      <Button Content="{Binding [Add], Source={x:Static local:Localizer.Current}}" Style="{StaticResource PrimaryButton}" Click="AddServer" Margin="0,0,8,0" />
      <Button Content="{Binding [Import], Source={x:Static local:Localizer.Current}}" Click="ImportServers" />
@@ -61,18 +60,18 @@
    </StackPanel>
    <Grid Visibility="{Binding DetailVisibility}">
     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition /></Grid.RowDefinitions>
-    <Grid Margin="0,3,0,14">
+    <Grid Margin="0,4,0,16">
      <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
      <StackPanel>
       <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
        <TextBlock Text="{Binding SelectedServer.Name}" FontSize="18" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" MaxWidth="360" ToolTip="{Binding SelectedServer.Target}" />
-       <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="14,0,0,0" VerticalAlignment="Center"><Ellipse Width="6" Height="6" Fill="{Binding SelectedServer.StatusBrush}" Margin="0,0,6,0" /><TextBlock Text="{Binding SelectedServer.Status}" Style="{StaticResource Caption}" /></StackPanel>
+       <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center"><Ellipse Width="6" Height="6" Fill="{Binding SelectedServer.StatusBrush}" Margin="0,0,4,0" /><TextBlock Text="{Binding SelectedServer.Status}" Style="{StaticResource Caption}" /></StackPanel>
       </Grid>
-      <TextBlock Text="{Binding SelectedServer.Subtitle}" Style="{StaticResource Caption}" Margin="0,6,12,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding SelectedServer.Subtitle}" />
+      <TextBlock Text="{Binding SelectedServer.Subtitle}" Style="{StaticResource Caption}" Margin="0,4,12,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding SelectedServer.Subtitle}" />
      </StackPanel>
      <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
-      <Button Click="OpenTerminal" Padding="11,6" Margin="0,0,10,0" ToolTip="{Binding [OpenSsh], Source={x:Static local:Localizer.Current}}">
-       <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE756;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" Margin="0,0,7,0" /><TextBlock Text="{Binding [Terminal], Source={x:Static local:Localizer.Current}}" /></StackPanel>
+      <Button Click="OpenTerminal" Padding="11,4" Margin="0,0,8,0" ToolTip="{Binding [OpenSsh], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [OpenSsh], Source={x:Static local:Localizer.Current}}">
+       <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE756;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" Margin="0,0,8,0" /><TextBlock Text="{Binding [Terminal], Source={x:Static local:Localizer.Current}}" /></StackPanel>
       </Button>
       <Button Content="&#xE72C;" Click="Refresh" Style="{StaticResource IconButton}" Margin="0,0,2,0" ToolTip="{Binding [Refresh], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [Refresh], Source={x:Static local:Localizer.Current}}" />
       <Button x:Name="ServerMenuButton" Content="&#xE712;" Click="OpenServerMenu" Style="{StaticResource IconButton}" ToolTip="{Binding [More], Source={x:Static local:Localizer.Current}}" AutomationProperties.Name="{Binding [More], Source={x:Static local:Localizer.Current}}">
@@ -87,25 +86,25 @@
     </Grid>
     <Border Grid.Row="1" Background="{DynamicResource DangerSoftBrush}" CornerRadius="4" Padding="12" Margin="0,0,0,12" Visibility="{Binding SelectedServer.ErrorVisibility}">
      <StackPanel>
-      <TextBlock Text="{Binding SelectedServer.ErrorTitle}" FontWeight="SemiBold" Foreground="{DynamicResource DangerBrush}" Margin="0,0,0,6" />
+      <TextBlock Text="{Binding SelectedServer.ErrorTitle}" FontWeight="SemiBold" Foreground="{DynamicResource DangerBrush}" Margin="0,0,0,4" />
       <TextBlock Text="{Binding SelectedServer.ErrorHint}" TextWrapping="Wrap" Style="{StaticResource Caption}" LineHeight="20" />
-      <Expander Header="{Binding [Details], Source={x:Static local:Localizer.Current}}" Margin="0,8,0,0" Foreground="{DynamicResource TextBrush}"><TextBlock Text="{Binding SelectedServer.Error}" TextWrapping="Wrap" Foreground="{DynamicResource DangerBrush}" FontSize="12" Margin="0,6,0,0" /></Expander>
-      <Button Content="{Binding [FirstConnect], Source={x:Static local:Localizer.Current}}" Click="OpenTerminal" HorizontalAlignment="Left" Padding="10,5" Margin="0,10,0,0" />
+      <Expander Header="{Binding [Details], Source={x:Static local:Localizer.Current}}" Margin="0,8,0,0" Foreground="{DynamicResource TextBrush}"><TextBlock Text="{Binding SelectedServer.Error}" TextWrapping="Wrap" Foreground="{DynamicResource DangerBrush}" FontSize="13" Margin="0,4,0,0" /></Expander>
+      <Button Content="{Binding [FirstConnect], Source={x:Static local:Localizer.Current}}" Click="OpenTerminal" HorizontalAlignment="Left" Padding="8,4" Margin="0,8,0,0" />
      </StackPanel>
     </Border>
     <TabControl Grid.Row="2" SelectionChanged="TabChanged" x:Name="DetailTabs">
      <TabItem Header="{Binding [Overview], Source={x:Static local:Localizer.Current}}">
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-       <StackPanel Margin="0,20,8,0">
-        <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="0,0,0,20" Margin="0,0,0,22">
+       <StackPanel Margin="0,24,8,0">
+        <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="0,0,0,24" Margin="0,0,0,24">
          <Grid><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="1" /><ColumnDefinition /><ColumnDefinition Width="1" /><ColumnDefinition /><ColumnDefinition Width="1" /><ColumnDefinition /></Grid.ColumnDefinitions>
-          <StackPanel Margin="0,0,20,0"><TextBlock Text="{Binding [Cpu], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" /><TextBlock Text="{Binding SelectedServer.Cpu}" Style="{StaticResource MetricValue}" /><TextBlock Text="{Binding SelectedServer.Cores}" Style="{StaticResource Caption}" /></StackPanel>
-          <Border Grid.Column="1" Background="{DynamicResource BorderBrush}" Margin="0,3" />
-          <StackPanel Grid.Column="2" Margin="20,0"><TextBlock Text="{Binding [Ram], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" /><TextBlock Text="{Binding SelectedServer.Ram}" Style="{StaticResource MetricValue}" /><TextBlock Text="{Binding SelectedServer.RamSize}" Style="{StaticResource Caption}" /></StackPanel>
-          <Border Grid.Column="3" Background="{DynamicResource BorderBrush}" Margin="0,3" />
-          <StackPanel Grid.Column="4" Margin="20,0"><TextBlock Text="{Binding [Disk], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" /><TextBlock Text="{Binding SelectedServer.Disk}" Style="{StaticResource MetricValue}" /><TextBlock Text="{Binding SelectedServer.DiskSize}" Style="{StaticResource Caption}" /></StackPanel>
-          <Border Grid.Column="5" Background="{DynamicResource BorderBrush}" Margin="0,3" />
-          <StackPanel Grid.Column="6" Margin="20,0,0,0"><TextBlock Text="{Binding [Network], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" /><TextBlock Text="{Binding SelectedServer.Rx}" FontSize="17" Margin="0,12,0,8" /><TextBlock Text="{Binding SelectedServer.Tx}" Style="{StaticResource Caption}" /></StackPanel>
+          <StackPanel Margin="0,0,24,0"><TextBlock Text="{Binding [Cpu], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" /><TextBlock Text="{Binding SelectedServer.Cpu}" Style="{StaticResource MetricValue}" /><TextBlock Text="{Binding SelectedServer.Cores}" Style="{StaticResource Caption}" /></StackPanel>
+          <Border Grid.Column="1" Background="{DynamicResource BorderBrush}" Margin="0,4" />
+          <StackPanel Grid.Column="2" Margin="24,0"><TextBlock Text="{Binding [Ram], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" /><TextBlock Text="{Binding SelectedServer.Ram}" Style="{StaticResource MetricValue}" /><TextBlock Text="{Binding SelectedServer.RamSize}" Style="{StaticResource Caption}" /></StackPanel>
+          <Border Grid.Column="3" Background="{DynamicResource BorderBrush}" Margin="0,4" />
+          <StackPanel Grid.Column="4" Margin="24,0"><TextBlock Text="{Binding [Disk], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" /><TextBlock Text="{Binding SelectedServer.Disk}" Style="{StaticResource MetricValue}" /><TextBlock Text="{Binding SelectedServer.DiskSize}" Style="{StaticResource Caption}" /></StackPanel>
+          <Border Grid.Column="5" Background="{DynamicResource BorderBrush}" Margin="0,4" />
+          <StackPanel Grid.Column="6" Margin="24,0,0,0"><TextBlock Text="{Binding [Network], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" /><TextBlock Text="{Binding SelectedServer.Rx}" FontSize="17" Margin="0,12,0,8" /><TextBlock Text="{Binding SelectedServer.Tx}" Style="{StaticResource Caption}" /></StackPanel>
          </Grid>
         </Border>
         <TextBlock Text="GPU" Style="{StaticResource SectionTitle}" Margin="0,0,0,12" Visibility="{Binding SelectedServer.GpuVisibility}" />
@@ -121,14 +120,14 @@
           <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="12,12">
            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="1.6*" /><ColumnDefinition /><ColumnDefinition Width="1.6*" /><ColumnDefinition Width="68" /><ColumnDefinition Width="68" /></Grid.ColumnDefinitions>
             <StackPanel Margin="0,0,12,0"><TextBlock Text="{Binding Model}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Name}" /><TextBlock Text="{Binding Index}" Style="{StaticResource Caption}" Margin="0,4,0,0" /></StackPanel>
-            <StackPanel Grid.Column="1" Margin="0,0,22,0" VerticalAlignment="Center"><TextBlock Text="{Binding Utilization}" /><ProgressBar Margin="0,7,0,0" Value="{Binding UtilizationValue, Mode=OneWay}" /></StackPanel>
-            <StackPanel Grid.Column="2" Margin="0,0,22,0" VerticalAlignment="Center"><TextBlock Text="{Binding Memory}" FontSize="12" /><ProgressBar Margin="0,7,0,0" Value="{Binding MemoryValue, Mode=OneWay}" Foreground="{DynamicResource SecondaryMetricBrush}" /></StackPanel>
-            <TextBlock Grid.Column="3" Text="{Binding Temperature}" VerticalAlignment="Center" FontSize="12" /><TextBlock Grid.Column="4" Text="{Binding Power}" VerticalAlignment="Center" FontSize="12" />
+            <StackPanel Grid.Column="1" Margin="0,0,24,0" VerticalAlignment="Center"><TextBlock Text="{Binding Utilization}" /><ProgressBar Margin="0,8,0,0" Value="{Binding UtilizationValue, Mode=OneWay}" /></StackPanel>
+            <StackPanel Grid.Column="2" Margin="0,0,24,0" VerticalAlignment="Center"><TextBlock Text="{Binding Memory}" FontSize="13" /><ProgressBar Margin="0,8,0,0" Value="{Binding MemoryValue, Mode=OneWay}" Foreground="{DynamicResource SecondaryMetricBrush}" /></StackPanel>
+            <TextBlock Grid.Column="3" Text="{Binding Temperature}" VerticalAlignment="Center" FontSize="13" /><TextBlock Grid.Column="4" Text="{Binding Power}" VerticalAlignment="Center" FontSize="13" />
            </Grid>
           </Border>
          </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
         </Grid>
-        <TextBlock Text="{Binding [Processes], Source={x:Static local:Localizer.Current}}" Style="{StaticResource SectionTitle}" Margin="0,26,0,12" />
+        <TextBlock Text="{Binding [Processes], Source={x:Static local:Localizer.Current}}" Style="{StaticResource SectionTitle}" Margin="0,24,0,12" />
         <DataGrid ItemsSource="{Binding SelectedServer.Processes}" MinHeight="110" MaxHeight="260" x:Name="ProcessGrid">
          <DataGrid.Columns>
           <DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="72" /><DataGridTextColumn Header="{Binding [User], Source={x:Static local:Localizer.Current}}" Binding="{Binding User}" Width="95" /><DataGridTextColumn Header="CPU" Binding="{Binding Cpu}" Width="72" /><DataGridTextColumn Header="RAM" Binding="{Binding Ram}" Width="90" /><DataGridTextColumn Header="{Binding [Command], Source={x:Static local:Localizer.Current}}" Binding="{Binding Command}" ElementStyle="{StaticResource CommandText}" Width="*" MinWidth="180" />
@@ -140,7 +139,7 @@
       </ScrollViewer>
      </TabItem>
      <TabItem Header="{Binding [Jobs], Source={x:Static local:Localizer.Current}}" x:Name="JobsTab">
-      <Grid Margin="0,18,8,0"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition /></Grid.RowDefinitions>
+      <Grid Margin="0,16,8,0"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition /></Grid.RowDefinitions>
        <TextBlock Text="{Binding SelectedServer.JobMessage}" Style="{StaticResource Caption}" />
        <DataGrid Grid.Row="1" ItemsSource="{Binding SelectedServer.Jobs}">
         <DataGrid.Columns>
@@ -152,16 +151,16 @@
      </TabItem>
      <TabItem Header="{Binding [History], Source={x:Static local:Localizer.Current}}" x:Name="HistoryTab">
       <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-       <StackPanel Margin="0,18,8,0">
-        <WrapPanel Margin="0,0,0,18">
-         <Border Background="{DynamicResource RaisedBrush}" CornerRadius="4" Padding="2" Margin="0,0,16,6"><StackPanel Orientation="Horizontal">
+       <StackPanel Margin="0,16,8,0">
+        <WrapPanel Margin="0,0,0,16">
+         <Border Background="{DynamicResource RaisedBrush}" CornerRadius="4" Padding="2" Margin="0,0,16,4"><StackPanel Orientation="Horizontal">
           <Button x:Name="RangeLive" Style="{StaticResource SegmentButton}" Content="{Binding [10m], Source={x:Static local:Localizer.Current}}" Tag="TenMinutes" Click="ChangeHistoryRange" /><Button x:Name="RangeDay" Style="{StaticResource SegmentButton}" Content="{Binding [24h], Source={x:Static local:Localizer.Current}}" Tag="Day" Click="ChangeHistoryRange" /><Button x:Name="RangeWeek" Style="{StaticResource SegmentButton}" Content="{Binding [7d], Source={x:Static local:Localizer.Current}}" Tag="Week" Click="ChangeHistoryRange" /><Button x:Name="RangeMonth" Style="{StaticResource SegmentButton}" Content="{Binding [30d], Source={x:Static local:Localizer.Current}}" Tag="Month" Click="ChangeHistoryRange" />
          </StackPanel></Border>
-         <Border Background="{DynamicResource RaisedBrush}" CornerRadius="4" Padding="2" Margin="0,0,16,6"><StackPanel Orientation="Horizontal"><Button x:Name="ModeOverall" Style="{StaticResource SegmentButton}" Content="{Binding [Overall], Source={x:Static local:Localizer.Current}}" Tag="False" Click="ChangeHistoryMode" /><Button x:Name="ModePerGpu" Style="{StaticResource SegmentButton}" Content="{Binding [PerGpu], Source={x:Static local:Localizer.Current}}" Tag="True" Click="ChangeHistoryMode" /></StackPanel></Border>
-         <StackPanel x:Name="GpuMetricPicker" Visibility="Collapsed"><Border Background="{DynamicResource RaisedBrush}" CornerRadius="4" Padding="2" Margin="0,0,0,6"><StackPanel Orientation="Horizontal"><Button x:Name="MetricUtilization" Style="{StaticResource SegmentButton}" Content="{Binding [GpuUse], Source={x:Static local:Localizer.Current}}" Tag="Utilization" Click="ChangeHistoryMetric" /><Button x:Name="MetricMemory" Style="{StaticResource SegmentButton}" Content="{Binding [Vram], Source={x:Static local:Localizer.Current}}" Tag="Memory" Click="ChangeHistoryMetric" /></StackPanel></Border></StackPanel>
+         <Border Background="{DynamicResource RaisedBrush}" CornerRadius="4" Padding="2" Margin="0,0,16,4"><StackPanel Orientation="Horizontal"><Button x:Name="ModeOverall" Style="{StaticResource SegmentButton}" Content="{Binding [Overall], Source={x:Static local:Localizer.Current}}" Tag="False" Click="ChangeHistoryMode" /><Button x:Name="ModePerGpu" Style="{StaticResource SegmentButton}" Content="{Binding [PerGpu], Source={x:Static local:Localizer.Current}}" Tag="True" Click="ChangeHistoryMode" /></StackPanel></Border>
+         <StackPanel x:Name="GpuMetricPicker" Visibility="Collapsed"><Border Background="{DynamicResource RaisedBrush}" CornerRadius="4" Padding="2" Margin="0,0,0,4"><StackPanel Orientation="Horizontal"><Button x:Name="MetricUtilization" Style="{StaticResource SegmentButton}" Content="{Binding [GpuUse], Source={x:Static local:Localizer.Current}}" Tag="Utilization" Click="ChangeHistoryMetric" /><Button x:Name="MetricMemory" Style="{StaticResource SegmentButton}" Content="{Binding [Vram], Source={x:Static local:Localizer.Current}}" Tag="Memory" Click="ChangeHistoryMetric" /></StackPanel></Border></StackPanel>
         </WrapPanel>
         <local:HistoryChart x:Name="Chart" Height="340" Margin="0,4,0,0" />
-        <TextBlock x:Name="HistoryHint" Style="{StaticResource Caption}" Margin="0,16,0,14" TextWrapping="Wrap" />
+        <TextBlock x:Name="HistoryHint" Style="{StaticResource Caption}" Margin="0,16,0,16" TextWrapping="Wrap" />
        </StackPanel>
       </ScrollViewer>
      </TabItem>
@@ -169,8 +168,8 @@
    </Grid>
   </Grid>
   <DockPanel Grid.Column="1" Grid.Row="2" Margin="24,12,24,12">
-   <TextBlock DockPanel.Dock="Right" Text="{Binding [TrayHint], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" FontSize="11" Margin="14,0,0,0" />
-   <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource Caption}" FontSize="11" TextTrimming="CharacterEllipsis" ToolTip="{Binding StatusMessage}" />
+   <TextBlock DockPanel.Dock="Right" Text="{Binding [TrayHint], Source={x:Static local:Localizer.Current}}" Style="{StaticResource Caption}" FontSize="13" Margin="16,0,0,0" />
+   <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource Caption}" FontSize="13" TextTrimming="CharacterEllipsis" ToolTip="{Binding StatusMessage}" />
   </DockPanel>
  </Grid>
 </Window>

@@ -9,11 +9,8 @@ public sealed class HistoryChart : FrameworkElement
     private int bucketSeconds = 300;
     private bool perGpu;
     private GpuHistoryMetric metric;
-    private static readonly Color[] Palette = [Color.FromRgb(126, 171, 235), Color.FromRgb(131, 197, 163),
-        Color.FromRgb(229, 160, 105), Color.FromRgb(190, 157, 225), Color.FromRgb(231, 144, 178), Color.FromRgb(108, 198, 206),
-        Color.FromRgb(213, 190, 101), Color.FromRgb(232, 133, 119)];
-    private static readonly Color[] LightPalette = [Color.FromRgb(52, 105, 177), Color.FromRgb(40, 122, 85),
-        Color.FromRgb(155, 75, 32), Color.FromRgb(125, 77, 167), Color.FromRgb(176, 62, 115), Color.FromRgb(28, 125, 137),
+    private static readonly Color[] Palette = [Color.FromRgb(36, 91, 219), Color.FromRgb(40, 122, 85),
+        Color.FromRgb(155, 75, 32), Color.FromRgb(28, 125, 137), Color.FromRgb(176, 62, 115), Color.FromRgb(106, 106, 52),
         Color.FromRgb(137, 111, 20), Color.FromRgb(178, 66, 54)];
 
     public void SetPoints(HistoryPoint[] value, DateTimeOffset start, DateTimeOffset end, int bucket = 300,
@@ -28,8 +25,7 @@ public sealed class HistoryChart : FrameworkElement
         if (ActualWidth < 100 || ActualHeight < 100 || until <= since) return;
         var textBrush = (Brush)FindResource("MutedBrush");
         var border = new Pen((Brush)FindResource("ChartGridBrush"), 1);
-        var background = ((SolidColorBrush)FindResource("BackgroundBrush")).Color;
-        var palette = background.R + background.G + background.B > 384 ? LightPalette : Palette;
+        var palette = Palette;
         var series = new List<(HistoryPoint[] Points, Func<HistoryPoint, double?> Value, Color Color, string Label)>();
         if (perGpu)
         {
@@ -46,7 +42,7 @@ public sealed class HistoryChart : FrameworkElement
             series.Add((overall, p => p.Ram, palette[3], Localizer.Current["Ram"]));
         }
         void Text(string text, double x, double y, Brush? brush = null) => context.DrawText(new FormattedText(text,
-            CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface("Segoe UI"), 11,
+            CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface("Segoe UI"), 13,
             brush ?? textBrush, VisualTreeHelper.GetDpi(this).PixelsPerDip), new Point(x, y));
         var legendColumns = Math.Max(1, (int)(ActualWidth - 60) / 110);
         var legendRows = Math.Max(1, (series.Count + legendColumns - 1) / legendColumns);

@@ -23,7 +23,7 @@ fixture corpus; the Mac UI, collector and signing configuration are unchanged.
 | Desktop shell | Menu bar with configurable text | System tray with tooltip summary and a dashboard window |
 | Desktop notifications | Apple notifications | Windows tray notifications |
 | Installation / shortcuts / login startup | Mac app bundle / ServiceManagement | Per-user portable installation, desktop + Start menu shortcuts, optional login startup |
-| Chinese / English and light / dark modes | Available | Available |
+| Chinese / English and appearance | Chinese / English; light and dark | Chinese / English; light only |
 | Update channel | Sparkle + official signed releases | Manual replacement; self-contained ZIP + SHA-256 |
 | Phone notifications | Official iCloud integration | Optional independent Bark integration |
 | Original iPhone app / widgets / mobile terminal | Official Apple integration | Outside this desktop contribution; requires coordinated iOS / Windows protocol work |
@@ -67,11 +67,9 @@ and sends no phone notifications.
 
 ![Windows light overview in Chinese](screenshots/windows/zh/overview-light.png)
 
-![Windows dark overview in English](screenshots/windows/en/overview-dark.png)
-
 ![Windows jobs table](screenshots/windows/zh/jobs-light.png)
 
-![Windows per-GPU history](screenshots/windows/en/history-per-gpu-dark.png)
+![Windows per-GPU history](screenshots/windows/en/history-per-gpu-light.png)
 
 ![Windows live history in Chinese](screenshots/windows/zh/history-live-light.png)
 

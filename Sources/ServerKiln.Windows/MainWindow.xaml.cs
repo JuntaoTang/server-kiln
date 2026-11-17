@@ -108,11 +108,6 @@ public partial class MainWindow : Window
         try { AppState.SavePreferences(AppState.Preferences with { Language = Localizer.Current.Chinese ? "en" : "zh" }); }
         catch (Exception ex) { AppState.ShowError(ex); }
     }
-    private void ToggleTheme(object sender, RoutedEventArgs e)
-    {
-        try { AppState.SavePreferences(AppState.Preferences with { Theme = AppState.Preferences.Theme == "light" ? "dark" : "light" }); Chart.InvalidateVisual(); }
-        catch (Exception ex) { AppState.ShowError(ex); }
-    }
     private void CopyCommand(object sender, RoutedEventArgs e)
     {
         try { if (ProcessGrid.SelectedItem is ProcessViewModel process) Clipboard.SetText(process.Command); }
@@ -179,21 +174,18 @@ public partial class MainWindow : Window
     {
         if (!AppState.Demo) throw new InvalidOperationException("Snapshots require isolated demo data.");
         Directory.CreateDirectory(directory);
+        foreach (var legacy in new[] { "overview-dark.png", "history-per-gpu-dark.png" })
+            File.Delete(Path.Combine(directory, legacy));
         Width = 1220; Height = 830; WindowState = WindowState.Normal;
         AppState.ViewModel.SelectedServer = AppState.ViewModel.Servers.First();
-        AppState.SavePreferences(AppState.Preferences with { Theme = "dark" });
         DetailTabs.SelectedIndex = 0;
-        await SaveSnapshotAsync(Path.Combine(directory, "overview-dark.png"));
-        AppState.SavePreferences(AppState.Preferences with { Theme = "light" });
         await SaveSnapshotAsync(Path.Combine(directory, "overview-light.png"));
         DetailTabs.SelectedItem = JobsTab;
         await SaveSnapshotAsync(Path.Combine(directory, "jobs-light.png"));
         DetailTabs.SelectedIndex = 0;
-        AppState.SavePreferences(AppState.Preferences with { Theme = "dark" });
         DetailTabs.SelectedItem = HistoryTab; historyRange = HistoryRange.Day; historyPerGpu = true; historyMetric = GpuHistoryMetric.Utilization;
         RefreshHistoryIfVisible(force: true);
-        await SaveSnapshotAsync(Path.Combine(directory, "history-per-gpu-dark.png"));
-        AppState.SavePreferences(AppState.Preferences with { Theme = "light" });
+        await SaveSnapshotAsync(Path.Combine(directory, "history-per-gpu-light.png"));
         historyRange = HistoryRange.TenMinutes; historyMetric = GpuHistoryMetric.Memory;
         RefreshHistoryIfVisible(force: true);
         await SaveSnapshotAsync(Path.Combine(directory, "history-live-light.png"));
@@ -229,32 +221,31 @@ public partial class MainWindow : Window
     {
         // Render real templates, chart and dialogs with synthetic data. No external I/O.
         foreach (var language in new[] { "en", "zh" })
-            foreach (var theme in new[] { "dark", "light" })
+        {
+            AppState.SavePreferences(AppState.Preferences with { Language = language });
+            foreach (var server in AppState.ViewModel.Servers)
             {
-                AppState.SavePreferences(AppState.Preferences with { Language = language, Theme = theme });
-                foreach (var server in AppState.ViewModel.Servers)
-                {
-                    AppState.ViewModel.SelectedServer = server;
-                    DetailTabs.SelectedIndex = 0; UpdateLayout();
-                    DetailTabs.SelectedItem = HistoryTab;
-                    foreach (var range in Enum.GetValues<HistoryRange>())
-                        foreach (var perGpu in new[] { false, true })
-                            foreach (var metric in Enum.GetValues<GpuHistoryMetric>())
-                            {
-                                historyRange = range; historyPerGpu = perGpu; historyMetric = metric;
-                                RefreshHistoryIfVisible(force: true); UpdateLayout();
-                            }
-                }
-                DetailTabs.SelectedItem = JobsTab; UpdateLayout();
-                var settings = new SettingsWindow { Owner = this }; settings.Show(); settings.RenderPagesForSmokeTest(); settings.Close();
-                var editor = new ServerEditor(null) { Owner = this }; editor.Show(); editor.UpdateLayout(); editor.Close();
-                var importer = new ImportWindow([new SshHostEntry("fixture", "gpu.example.com", "researcher", 22, "synthetic")]) { Owner = this };
-                importer.Show(); importer.UpdateLayout(); importer.Close();
-                OpenServerMenu(ServerMenuButton, new RoutedEventArgs());
-                if (!ServerMenuButton.ContextMenu.IsOpen) throw new InvalidOperationException("Server actions menu did not open.");
-                ServerMenuButton.ContextMenu.IsOpen = false;
-                await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+                AppState.ViewModel.SelectedServer = server;
+                DetailTabs.SelectedIndex = 0; UpdateLayout();
+                DetailTabs.SelectedItem = HistoryTab;
+                foreach (var range in Enum.GetValues<HistoryRange>())
+                    foreach (var perGpu in new[] { false, true })
+                        foreach (var metric in Enum.GetValues<GpuHistoryMetric>())
+                        {
+                            historyRange = range; historyPerGpu = perGpu; historyMetric = metric;
+                            RefreshHistoryIfVisible(force: true); UpdateLayout();
+                        }
             }
+            DetailTabs.SelectedItem = JobsTab; UpdateLayout();
+            var settings = new SettingsWindow { Owner = this }; settings.Show(); settings.RenderPagesForSmokeTest(); settings.Close();
+            var editor = new ServerEditor(null) { Owner = this }; editor.Show(); editor.UpdateLayout(); editor.Close();
+            var importer = new ImportWindow([new SshHostEntry("fixture", "gpu.example.com", "researcher", 22, "synthetic")]) { Owner = this };
+            importer.Show(); importer.UpdateLayout(); importer.Close();
+            OpenServerMenu(ServerMenuButton, new RoutedEventArgs());
+            if (!ServerMenuButton.ContextMenu.IsOpen) throw new InvalidOperationException("Server actions menu did not open.");
+            ServerMenuButton.ContextMenu.IsOpen = false;
+            await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
+        }
         Width = MinWidth; Height = MinHeight;
         AppState.SavePreferences(AppState.Preferences with { Servers = [] });
         UpdateLayout();
