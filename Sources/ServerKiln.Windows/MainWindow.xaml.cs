@@ -221,6 +221,8 @@ public partial class MainWindow : Window
         ShowOverview();
         DetailScroll.ScrollToTop();
         await SaveSnapshotAsync(Path.Combine(directory, "overview-light.png"));
+        AppState.ViewModel.SelectedServer = AppState.ViewModel.Servers.Skip(1).FirstOrDefault() ?? first;
+        await SaveSnapshotAsync(Path.Combine(directory, "idle-light.png"));
         AppState.ViewModel.SelectedServer = AppState.ViewModel.Servers.Last();
         await SaveSnapshotAsync(Path.Combine(directory, "server-detail-light.png"));
         AppState.ViewModel.SelectedServer = first;
